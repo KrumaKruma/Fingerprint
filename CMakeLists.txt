@@ -74,3 +74,12 @@ add_executable(FP_cluster.x
 )
 target_link_libraries(FP_cluster.x ${libraries})
 endif()
+if(DISTANCE)
+add_executable(FP_distance.x
+     src/fingerprint.f90
+     src/precision.f90
+     src/hung.f90
+     src/fp_distance.f90
+)
+target_link_libraries(FP_distance.x ${libraries})
+endif()
