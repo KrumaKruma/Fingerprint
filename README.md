@@ -32,7 +32,21 @@ cd build
 cmake -DDEBUG=OFF -DINTEL=ON -DCLUSTER=ON .. # compile without debug flags and the intel compiler
 make
 ```
-
+## Fingerprint Distance
+In this toy program (src/fp_distance.f90) the fingerprint distance of two periodic perovskite crystals is calculated using the hungarian algorithm. The hungarian algorithm is taken from another [GitHub repository](https://github.com/Jonas-Finkler/RMSD-finder) which computes the translation, rotation and permutation of atoms that minimizes the RMSD between two atomic configurations. However, here the fingerprint distance is calculated. Compiling this version can be done the following way:
+```bash
+mkdir build
+cd build
+cmake -DDEBUG=OFF -DDISTANCE=ON .. # compile without debug flags and the gfortran compiler
+make
+```
+If you want to use the intel fortran compiler please use:
+```bash
+mkdir build
+cd build
+cmake -DDEBUG=OFF -DINTEL=ON -DDISTANCE=ON .. # compile without debug flags and the intel compiler
+make
+```
 
 ## References
 
