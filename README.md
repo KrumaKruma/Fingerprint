@@ -4,49 +4,38 @@ The module fingerprint can be used for the computation of overlap matrix based f
 ## Periodic Version
 The periodic version (src/fp_for_crystals.f90) is a template program to calculate the fingerprint of an Alanate crystal. If only the fingerprint without the derivative shall be calculated please set only_fp = .true., otherwise also the derivative of the fingerprint will be calculated and written into a file. Compiling this version can be done in the following way:
 ```bash
-mkdir build
-cd build
-cmake -DDEBUG=OFF -DCRYSTAL=ON .. # compile without debug flags and the gfortran compiler
+make clean
 make
+make fp_crystal
+cd build
+./fp_crystal.x
 ```
 If you want to use the intel fortran compiler please use:
-```bash
-mkdir build
-cd build
-cmake -DDEBUG=OFF -DINTEL=ON -DCRYSTAL=ON .. # compile without debug flags and the intel compiler
-make
-```
+COMMING SOON
 
 ## Clusters
 The cluster version (src/fp_for_clusters.f90) is a template program to calculate the fingerprint of a benzene molecule. The main difference in this version is that the unit cell vectors are set to zero. If only the fingerprint without the derivative shall be calculated please set only_fp = .true., otherwise also the derivative of the fingerprint will be calculated and written to files. Compiling this version can be done in the following way:
 ```bash
-mkdir build
-cd build
-cmake -DDEBUG=OFF -DCLUSTER=ON .. # compile without debug flags and the gfortran compiler
+make clean
 make
+make fp_cluster
+cd build
+./fp_cluster.x
 ```
 If you want to use the intel fortran compiler please use:
-```bash
-mkdir build
-cd build
-cmake -DDEBUG=OFF -DINTEL=ON -DCLUSTER=ON .. # compile without debug flags and the intel compiler
-make
-```
+COMMING SOON
+
 ## Fingerprint Distance
 In this template program (src/fp_distance.f90) the fingerprint distance of two periodic perovskite crystals is calculated using the hungarian algorithm. The hungarian algorithm is taken from another [GitHub repository](https://github.com/Jonas-Finkler/RMSD-finder) and computes the translation, rotation and permutation of atoms that minimizes the RMSD between two crystalline configurations. Compiling this version can be done in the following way:
 ```bash
-mkdir build
-cd build
-cmake -DDEBUG=OFF -DDISTANCE=ON .. # compile without debug flags and the gfortran compiler
+make clean
 make
+make fp_distance
+cd build
+./fp_distance.x
 ```
 If you want to use the intel fortran compiler please use:
-```bash
-mkdir build
-cd build
-cmake -DDEBUG=OFF -DINTEL=ON -DDISTANCE=ON .. # compile without debug flags and the intel compiler
-make
-```
+COMMING SOON
 
 ## References
 
