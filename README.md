@@ -7,6 +7,8 @@ The periodic version (src/fp_for_crystals.f90) is a template program to calculat
 make clean
 make
 make fp_crystal
+cd build
+./fp_crystal.x
 ```
 If you want to use the intel fortran compiler please use:
 COMMING SOON
@@ -17,6 +19,8 @@ The cluster version (src/fp_for_clusters.f90) is a template program to calculate
 make clean
 make
 make fp_cluster
+cd build
+./fp_cluster.x
 ```
 If you want to use the intel fortran compiler please use:
 COMMING SOON
@@ -27,6 +31,8 @@ In this template program (src/fp_distance.f90) the fingerprint distance of two p
 make clean
 make
 make fp_distance
+cd build
+./fp_distance.x
 ```
 If you want to use the intel fortran compiler please use:
 COMMING SOON
