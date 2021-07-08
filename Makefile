@@ -4,8 +4,13 @@ MOD := modules
 DEBS := precision.mod hung.mod fingerprint.mod
 FC := gfortran
 
+ifeq ($(FC), gfortran)
 linking_flags = -Ofast -llapack -lblas -fopenmp -J$(OBJ)/$(MOD)
 compile_flags = $(linking_flags)
+else
+linking_flags = -O3 -mkl -qopenmp -J$(OBJ)/$(MOD)
+compile_flags = $(linking_flags)
+endif
 
 MODULE := $(SRC)/precision.f90 $(SRC)/hung.f90 $(SRC)/fingerprint.f90
 OBJECTS := $(OBJ)/$(MOD)/precision.o $(OBJ)/$(MOD)/hung.o $(OBJ)/$(MOD)/fingerprint.o
@@ -33,4 +38,4 @@ bin:
 	mkdir -p build/modules
 
 clean:
-	rm -rf fingerprint_distance $(OBJ)
+	rm -rf $(OBJ)
