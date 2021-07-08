@@ -18,7 +18,7 @@
 !   "Algorithms and codes for the assignment problem."
 !   Annals of operations research 13.1 (1988): 191-223.
 
-module assignmentProblem
+module hung
     use precision
     implicit none
 
@@ -266,4 +266,4 @@ contains
 
     end subroutine
 
-end module assignmentProblem
+end module hung

@@ -1,6 +1,6 @@
 program fp_for_crystals
   use fingerprint
-  use assignmentProblem
+  use hung
   IMPLICIT NONE
   INTEGER, PARAMETER :: nat = 40    !number of atoms in the unit cell
   INTEGER, PARAMETER :: nconf = 2
