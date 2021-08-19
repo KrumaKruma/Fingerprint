@@ -337,10 +337,6 @@ CONTAINS
     ENDDO
 
 
-    WRITE(*,*) "--------------------------------------"
-    WRITE(*,*) "SOFTWARE INFORMATION"
-    CALL cite()
-    WRITE(*,*) "--------------------------------------"
 
   END SUBROUTINE
 ! subroutines used for calculations

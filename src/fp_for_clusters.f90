@@ -114,7 +114,10 @@ program fp_for_crystals
   time=(count2-count1)/float(count_rate)
   WRITE(*,*) 'Elapsed time ', time ," s"
   WRITE(*,*) "--------------------------------------"
-
+  WRITE(*,*) "--------------------------------------"
+  WRITE(*,*) "SOFTWARE INFORMATION"
+  CALL cite()
+  WRITE(*,*) "--------------------------------------"
 
   WRITE(*,*) "======================================"
   WRITE(*,*) "PROGRAM FINISHED SUCCESSFUL"

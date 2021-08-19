@@ -13,38 +13,50 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-program fp_for_crystals
+program test_derivative
   use fingerprint
   IMPLICIT NONE
   INTEGER, PARAMETER :: nat = 12    !number of atoms in the unit cell
+  INTEGER, PARAMETER :: ifp = 1
+  INTEGER, PARAMETER :: kat = 1
+  INTEGER, PARAMETER :: nint = 100
   INTEGER, PARAMETER :: ns = 1      !using s-orbitals 1->yes, 0->no
   INTEGER, PARAMETER :: np = 1      !using p-orbitals 1->yes, 0->no
   INTEGER, PARAMETER :: nat_sphere_max = 100 !maximal number of atoms in the sphere
   REAL(8), PARAMETER :: width_cutoff = 5.0 !cutoff radius of the sphere
+  INTEGER :: idispl
+  INTEGER :: iat
+  REAL(8) :: stepsize
+  REAL(8) :: pi
+  REAL(8) :: fact
+  REAL(8) :: fp0
+  REAL(8) :: path
+  REAL(8) :: sumx
+  REAL(8) :: sumy
+  REAL(8) :: sumz
+  REAL(8) :: t1
+  REAL(8) :: t2
+  REAL(8) :: t3
   REAL(8), DIMENSION(3,3) :: alat !unit cell vectors
   REAL(8), DIMENSION(3,nat) :: rxyz !atom coordinates
+  REAL(8), DIMENSION(3,nat) :: rxyz0 !original atom coordinates
+  REAL(8), DIMENSION(3,nat) :: displ
+  REAL(8), DIMENSION(3,nat,2) :: dispd
   REAL(8), DIMENSION(nat, nat_sphere_max*(ns+3*np)) :: fp !fingerprint for each environment
   REAL(8), DIMENSION(nat, 3, nat, nat_sphere_max*(ns+3*np)) :: dfp !fingerprint derivative for each environment
   CHARACTER(len=100) :: filename  !name of the file which contains the structure
   CHARACTER(len=2), DIMENSION(nat) :: symb !atomic symbols
 
-  INTEGER :: i
-  INTEGER :: j
-  INTEGER :: l
-  INTEGER :: iat
-  INTEGER :: jat
   INTEGER :: count1
   INTEGER :: count2
   INTEGER :: count_rate
   INTEGER :: count_max
 
-  REAL(8) :: t1
-  REAL(8) :: t2
+  REAL(8) :: time1
+  REAL(8) :: time2
   REAL(8) :: time
 
-  LOGICAL, PARAMETER :: only_fp = .false. !if true the fingerprint is calculated. if false both fingerprint and derivatives are calculated!
-
-  CALL cpu_time(t1)
+  CALL cpu_time(time1)
   CALL system_clock(count1,count_rate,count_max)
   !reading ascii file...
   !This part can be replaced by any file reader as long as rxyz (coordinates) and
@@ -58,57 +70,88 @@ program fp_for_crystals
   WRITE(*,*) "DONE"
   WRITE(*,*) "--------------------------------------"
 
-  !Either only the fingerprint or the fingerprint and its derivative is computed
-  IF (only_fp) THEN
-    WRITE(*,*) "--------------------------------------"
-    WRITE(*,*) "COMPUTE FINGEREPRINT ONLY"
-    CALL only_fingerprint(nat, nat_sphere_max, ns, np, width_cutoff, alat,rxyz, symb, fp)
-    WRITE(*,*) "DONE"
-    WRITE(*,*) "--------------------------------------"
-    WRITE(*,*) "--------------------------------------"
-    WRITE(*,*) "WRITE FINGERPRINT TO FILE"
-    !Write fingerprint to file
-    OPEN(UNIT=10, FILE="fingerprint.dat")
-    DO iat = 1, nat
-      write(10,*) ( fp(iat, j), j = 1, nat_sphere_max*(ns+3*np))
-    ENDDO
-    CLOSE(10)
-    WRITE(*,*) "DONE"
-  ELSE
-    WRITE(*,*) "--------------------------------------"
-    WRITE(*,*) "COMPUTE FINGERPRINT AND DERIVATIVES"
-    CALL fingerprint_and_derivatives(nat, nat_sphere_max, ns, np, width_cutoff, alat,rxyz,symb, fp, dfp)
-    WRITE(*,*) "DONE"
-    WRITE(*,*) "--------------------------------------"
-    WRITE(*,*) "--------------------------------------"
-    WRITE(*,*) "WRITE FINGERPRINT AND DERIVATIVES TO FILE"
-    !Write fingerprint and its derivative to file
-    OPEN(UNIT=10, FILE="fingerprint.dat")
-    DO iat = 1, nat
-      WRITE(10,*) ( fp(iat, j), j = 1, nat_sphere_max*(ns+3*np))
-    ENDDO
-    CLOSE(10)
-    OPEN(UNIT=10, FILE="fingerprint_derivative.dat")
-    DO iat = 1, nat !loop over environments
-      DO l = 1, 3   !loop over x,y,z dererivative
-        DO jat = 1, nat !loop over all atoms to which it fp is derivated
-          WRITE(10,*) (dfp(iat,l,jat,j), j = 1, nat_sphere_max*(ns+3*np))
-        ENDDO
-      ENDDO
-    ENDDO
-    CLOSE(10)
-    WRITE(*,*) "DONE"
-    WRITE(*,*) "--------------------------------------"
-  ENDIF
+  pi=4.d0*atan(1.d0)
+  stepsize=1.0d0/nint
+  rxyz0 = rxyz
+  call random_number(dispd)
+  dispd=dispd*0.01d0
+  path = 0.d0
+  fact=2*pi/nint
+
+  OPEN(UNIT=10, FILE="Path_Integration.dat")
 
   WRITE(*,*) "--------------------------------------"
-  CALL cpu_time(t2)
+  WRITE(*,*) "STARTING PATH INTEGRATION"
+  WRITE(*,*) "--------------------------------------"
+  WRITE(*,*) "--------------------------------------"
+
+  DO idispl = 0, nint
+    IF(mod(idispl,20) .eq. 0) THEN
+      WRITE(*,*) "PATH INTEGRATION STEP:", idispl
+    ENDIF
+    DO iat = 1, nat
+      rxyz(1,iat) = rxyz0(1,iat)+dispd(1,iat,1)*sin(2*pi*stepsize*idispl)&
+                   +dispd(1,iat,2)*cos(2*pi*stepsize*idispl)
+      rxyz(2,iat) = rxyz0(2,iat)+dispd(2,iat,1)*sin(2*pi*stepsize*idispl)&
+                   +dispd(2,iat,2)*cos(2*pi*stepsize*idispl)
+      rxyz(3,iat) = rxyz0(3,iat)+dispd(3,iat,1)*sin(2*pi*stepsize*idispl)&
+                   +dispd(3,iat,2)*cos(2*pi*stepsize*idispl)
+      displ(1,iat) = dispd(1,iat,1)*cos(2*pi*stepsize*idispl)&
+                   -dispd(1,iat,2)*sin(2*pi*stepsize*idispl)
+      displ(2,iat) = dispd(2,iat,1)*cos(2*pi*stepsize*idispl)&
+                   -dispd(2,iat,2)*sin(2*pi*stepsize*idispl)
+      displ(3,iat) = dispd(3,iat,1)*cos(2*pi*stepsize*idispl)&
+                   -dispd(3,iat,2)*sin(2*pi*stepsize*idispl)
+    ENDDO
+
+    CALL fingerprint_and_derivatives(nat, nat_sphere_max, ns, np, width_cutoff, alat,rxyz,symb, fp, dfp)
+
+    IF(idispl .eq. 0) THEN
+      fp0 = fp(kat,ifp)
+    ENDIF
+
+    sumx = 0.d0
+    sumy = 0.d0
+    sumz = 0.d0
+    DO iat = 1, nat
+      sumx = sumx + dfp(kat,1,iat,ifp)
+      sumy = sumy + dfp(kat,2,iat,ifp)
+      sumz = sumz + dfp(kat,3,iat,ifp)
+    ENDDO
+    IF(sumx**2 .gt. 1.d-12) WRITE(*,*) "sumx", sumx
+    IF(sumy**2 .gt. 1.d-12) WRITE(*,*) "sumy", sumy
+    IF(sumz**2 .gt. 1.d-12) WRITE(*,*) "sumz", sumz
+
+    IF(idispl .lt. nint) THEN
+      t1 = 0.d0
+      t2 = 0.d0
+      t3 = 0.d0
+      DO iat = 1, nat
+        t1 = t1 + dfp(kat,1,iat,ifp)*displ(1,iat)
+        t2 = t2 + dfp(kat,2,iat,ifp)*displ(2,iat)
+        t3 = t3 + dfp(kat,3,iat,ifp)*displ(3,iat)
+      ENDDO
+    ENDIF
+
+    path = path + (t1+t2+t3)*fact
+    WRITE(10,'(I3, e24.7,e24.7)') idispl, fp(kat,ifp), fp0+path
+
+  ENDDO
+
+  CLOSE(10)
+  WRITE(*,*) "--------------------------------------"
+  WRITE(*,*) "RESULTS HAVE BEEN WRITTEN TO FILE: Path_Integration.dat"
+  WRITE(*,*) "DONE"
+  WRITE(*,*) "--------------------------------------"
+
+  CALL cpu_time(time2)
   CALL system_clock(count2,count_rate,count_max)
 
-  WRITE(*,*) 'CPU time:    ', t2-t1, " s"
+  WRITE(*,*) 'CPU time:    ', time2-time1, " s"
   time=(count2-count1)/float(count_rate)
   WRITE(*,*) 'Elapsed time ', time ," s"
   WRITE(*,*) "--------------------------------------"
+
 
   WRITE(*,*) "--------------------------------------"
   WRITE(*,*) "SOFTWARE INFORMATION"
@@ -118,7 +161,10 @@ program fp_for_crystals
   WRITE(*,*) "======================================"
   WRITE(*,*) "PROGRAM FINISHED SUCCESSFUL"
   WRITE(*,*) "======================================"
-end program
+
+end program test_derivative
+
+
 
 
 subroutine read_ascii(filename, nat, rxyz, alat, symb)
