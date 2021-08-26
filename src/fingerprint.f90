@@ -146,10 +146,6 @@ CONTAINS
       !write(*,*) "Fingerprint of environment", ienv, " : DONE"
     ENDDO
 
-    WRITE(*,*) "--------------------------------------"
-    WRITE(*,*) "SOFTWARE INFORMATION"
-    CALL cite()
-    WRITE(*,*) "--------------------------------------"
   END SUBROUTINE
 
 
