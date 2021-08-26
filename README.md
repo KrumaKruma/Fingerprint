@@ -94,7 +94,7 @@ make test_derivative FC=ifort
 cd build
 ./test_derivative.x
 ```
-The result is stored in the file Markup :  **Path_Integration.dat**. The result can be visualized with gnuplot:
+The result is stored in the file **Path_Integration.dat**. The result can be visualized with gnuplot:
 ```bash
 gnuplot
 plot "Path_Integration.dat" u 1:2 w l
