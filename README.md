@@ -57,8 +57,8 @@ cd build
 
 ## Test the Fingerprint
 There are two templates to test the fingerprint: 
-Markup: 1. Template for profing rotational invariance by rotating the system randomly
-        2. Path integration of the derivative of the fingerprint to test its correctness.
+- Template for profing rotational invariance by rotating the system randomly
+- Path integration of the derivative of the fingerprint to test its correctness.
 ### Test rotational invariance
 Compiling and running the test for rotationial invariance can be done the following way:
 ```bash
