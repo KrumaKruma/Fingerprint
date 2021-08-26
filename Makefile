@@ -2,13 +2,13 @@ SRC := src
 OBJ := build
 MOD := modules
 DEBS := precision.mod hung.mod fingerprint.mod
-FC := gfortran
+FC = gfortran
 
 ifeq ($(FC), gfortran)
 linking_flags = -Ofast -llapack -lblas -fopenmp -J$(OBJ)/$(MOD)
 compile_flags = $(linking_flags)
 else
-linking_flags = -O3 -mkl -qopenmp -J$(OBJ)/$(MOD)
+linking_flags = -O3 -mkl -qopenmp -module $(OBJ)/$(MOD)
 compile_flags = $(linking_flags)
 endif
 
