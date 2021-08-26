@@ -55,6 +55,54 @@ cd build
 ./fp_distance.x
 ```
 
+## Test the Fingerprint
+There are two templates to test the fingerprint: 
+Markup: 1. Template for profing rotational invariance by rotating the system randomly
+        2. Path integration of the derivative of the fingerprint to test its correctness.
+### Test rotational invariance
+Compiling and running the test for rotationial invariance can be done the following way:
+```bash
+make clean
+make 
+make test_invariance
+cd build
+./test_invariance.x
+```
+If you want to use the intel fortran compiler please use:
+```bash
+make clean
+make FC=ifort
+make test_invariance FC=ifort
+cd build
+./test_invariance.x
+```
+The result for the fingerprint distance should be zero, whereas the result of the scalar product of the coordinates is non zero.
+### Test fingerprint derivatives
+Compiling and running the test for the fingerprint derivatives can be done the following way:
+```bash
+make clean
+make 
+make test_derivative
+cd build
+./test_derivative.x
+```
+If you want to use the intel fortran compiler please use:
+```bash
+make clean
+make FC=ifort
+make test_derivative FC=ifort
+cd build
+./test_derivative.x
+```
+The result is stored in the file Markup :  __Strong text__ or **Path_Integration.dat**. The result can be visualized with gnuplot:
+```bash
+gnuplot
+plot "Path_Integration.dat" u 1:2 w l
+replot "Path_Integration.dat" u 1:3 w l
+```
+If the derivative is correct the two curves should nearly be the same with very small deviations. The deviations should get smaller the more integration steps are used (nint) in the src/test_derivative.f90 file.
+
+
 ## References
 
 Please cite the following articles if you use this code in an academic setting:
