@@ -74,7 +74,7 @@ program test_derivative
   stepsize=1.0d0/nint
   rxyz0 = rxyz
   call random_number(dispd)
-  dispd=dispd*0.01d0
+  dispd=dispd*0.1d0
   path = 0.d0
   fact=2*pi/nint
 

@@ -75,7 +75,7 @@ program test_invariance
   DO iat=1,nat
     sum = sum + (rxyz0(1,iat)-rxyz(1,iat))**2 + (rxyz0(2,iat)-rxyz(2,iat))**2 + (rxyz0(3,iat)-rxyz(3,iat))**2
   ENDDO
-  WRITE(*,'(A,F10.5)') "COORDINATE DISTANCE OF CONFIGURATION 1 AND 2: ", sum
+  WRITE(*,'(A,F10.5)') "COORDINATE DISTANCE OF CONFIGURATION 1 AND 2: ", sqrt(sum)
 
   DO iconf = 1, nconf
     DO jconf = iconf+1, nconf
