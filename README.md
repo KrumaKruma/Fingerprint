@@ -96,11 +96,9 @@ cd build
 ```
 The result is stored in the file **Path_Integration.dat**. The result can be visualized with gnuplot:
 ```bash
-gnuplot
-plot "Path_Integration.dat" u 1:2 w l
-replot "Path_Integration.dat" u 1:3 w l
+gnuplot plot_results.gnuplot
 ```
-If the derivative is correct the two curves should nearly be the same with very small deviations. The deviations should get smaller the more integration steps are used (nint) in the src/test_derivative.f90 file.
+The output of the plotting is a png image (Path_Integraten.png). If the derivative is correct the two curves should nearly be the same with very small deviations. The deviations should get smaller the more integration steps are used (nint) in the src/test_derivative.f90 file.
 
 
 ## References
