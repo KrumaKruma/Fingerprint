@@ -36,7 +36,7 @@ fp_cluster: $(SOURCES3) $(OBJECTS)
 	$(FC) $(OBJ)/$(MOD)/fingerprint.o $(OBJ)/$(MOD)/hung.o $(OBJ)/$(MOD)/precision.o $(SOURCES3) -o $(OBJ)/fp_cluster.x $(compile_flags)
 
 test_derivative: $(SOURCES4) $(OBJECTS)
-	$(FC) $(OBJ)/$(MOD)/fingerprint.o $(SOURCES4) -o $(OBJ)/test_derivative.x $(compile_flags)
+	cp $(SRC)/plot_results.gnuplot $(OBJ)/plot_results.gnuplot; $(FC) $(OBJ)/$(MOD)/fingerprint.o $(SOURCES4) -o $(OBJ)/test_derivative.x $(compile_flags)
 
 test_invariance: $(SOURCES5) $(OBJECTS)
 	$(FC) $(OBJ)/$(MOD)/fingerprint.o $(OBJ)/$(MOD)/rot.o $(OBJ)/$(MOD)/hung.o $(OBJ)/$(MOD)/precision.o $(SOURCES5) -o $(OBJ)/test_invariance.x $(compile_flags)
