@@ -645,7 +645,7 @@ CONTAINS
   ! returns the covalent radius of atom with chemical symbol sym
     REAL(8)  :: rcov
     CHARACTER(len=2) :: sym  ! chemical symbol
-    SELECT CASE (trim(sym))
+    SELECT CASE (adjustl(trim(sym)))
        ! covalet radius in Angstrom taken from WebElements: http://www.webelements.com/periodicity/covalent_radius/
     CASE('H')
        rcov= 0.37d0
