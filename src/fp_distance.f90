@@ -10,7 +10,7 @@ program fp_for_crystals
   REAL(8), PARAMETER :: width_cutoff = 5.0 !cutoff radius of the sphere
   REAL(8), DIMENSION(3,3,nconf) :: alat !unit cell vectors
   REAL(8), DIMENSION(3,nat, nconf) :: rxyz !atom coordinates
-  REAL(8), DIMENSION(nat, nat_sphere_max*(ns+3*np),nconf) :: fp !fingerprint for each environment
+  REAL(8), DIMENSION(nat_sphere_max*(ns+3*np),nat, nconf) :: fp !fingerprint for each environment
   CHARACTER(len=100) :: filename  !name of the file which contains the structure
   CHARACTER(len=2), DIMENSION(nat,nconf) :: symb !atomic symbols
 
@@ -75,7 +75,7 @@ program fp_for_crystals
         DO jat = 1, nat
           tt=0.d0
           DO iorb=1,(ns+3*np)*nat_sphere_max
-            tt=tt+(fp(iat,iorb,iconf)-fp(jat,iorb,jconf))**2
+            tt=tt+(fp(iorb,iat,iconf)-fp(iorb,jat,jconf))**2
           ENDDO
           tt=sqrt(tt)
           tmin=min(tmin,tt)

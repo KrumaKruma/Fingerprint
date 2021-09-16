@@ -23,8 +23,8 @@ program fp_for_crystals
   REAL(8), PARAMETER :: width_cutoff = 5.0 !cutoff radius of the sphere
   REAL(8), DIMENSION(3,3) :: alat !unit cell vectors
   REAL(8), DIMENSION(3,nat) :: rxyz !atom coordinates
-  REAL(8), DIMENSION(nat, nat_sphere_max*(ns+3*np)) :: fp !fingerprint for each environment
-  REAL(8), DIMENSION(nat, 3, nat, nat_sphere_max*(ns+3*np)) :: dfp !fingerprint derivative for each environment
+  REAL(8), DIMENSION(nat_sphere_max*(ns+3*np),nat) :: fp !fingerprint for each environment
+  REAL(8), DIMENSION(nat_sphere_max*(ns+3*np),3,nat,nat) :: dfp !fingerprint derivative for each environment
   CHARACTER(len=100) :: filename  !name of the file which contains the structure
   CHARACTER(len=2), DIMENSION(nat) :: symb !atomic symbols
 
@@ -70,7 +70,7 @@ program fp_for_crystals
     !Write fingerprint to file
     OPEN(UNIT=10, FILE="fingerprint.dat")
     DO iat = 1, nat
-      write(10,*) ( fp(iat, j), j = 1, nat_sphere_max*(ns+3*np))
+      write(10,*) ( fp(j, iat), j = 1, nat_sphere_max*(ns+3*np))
     ENDDO
     CLOSE(10)
     WRITE(*,*) "DONE"
@@ -85,14 +85,14 @@ program fp_for_crystals
     !Write fingerprint and its derivative to file
     OPEN(UNIT=10, FILE="fingerprint.dat")
     DO iat = 1, nat
-      WRITE(10,*) ( fp(iat, j), j = 1, nat_sphere_max*(ns+3*np))
+      WRITE(10,*) ( fp(j,iat), j = 1, nat_sphere_max*(ns+3*np))
     ENDDO
     CLOSE(10)
     OPEN(UNIT=10, FILE="fingerprint_derivative.dat")
     DO iat = 1, nat !loop over environments
       DO l = 1, 3   !loop over x,y,z dererivative
         DO jat = 1, nat !loop over all atoms to which it fp is derivated
-          WRITE(10,*) (dfp(iat,l,jat,j), j = 1, nat_sphere_max*(ns+3*np))
+          WRITE(10,*) (dfp(j,l,iat,jat), j = 1, nat_sphere_max*(ns+3*np))
         ENDDO
       ENDDO
     ENDDO

@@ -19,8 +19,7 @@
 
 module simplex
   IMPLICIT NONE
-  PRIVATE
-  PUBLIC :: fpdf
+
 CONTAINS
 
   subroutine SimplexSparse(len_fp, natx, nconf, nsimplex, fpall, fp, fpcorner)
@@ -44,7 +43,7 @@ CONTAINS
     INTEGER :: i, j, k, l, iat, jat, iiat, jjat, iconf, jconf, iiconf, jjconf
     INTEGER :: isim, jsim, nsim, msim
     REAL(8) :: fpd
-    REAL(8) :: fpdf
+    !REAL(8) :: fpdf
     REAL(8) :: dmax
     REAL(8) :: distmax
 
@@ -203,7 +202,7 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall, fpallde
   INTEGER :: i, j, k, l, iat, jat, iiat, jjat, iconf, jconf, iiconf, jjconf
   INTEGER :: isim, jsim, nsim, msim
   REAL(8) :: fpd
-  REAL(8) :: fpdf
+  !REAL(8) :: fpdf
   REAL(8) :: dmax
   REAL(8) :: distmax
 
@@ -464,6 +463,8 @@ function fpdf(len,fp1,fp2) result(fpd)
 
 end
 
-
+subroutine cite_simplex()
+  WRITE(*,*) "--> B. Parsaeifard et al. Machine Learning: Science and Technology 2, 015018 (2021)"
+end subroutine
 
 end module simplex

@@ -29,7 +29,7 @@ CONTAINS
     REAL(8), INTENT(IN) :: width_cutoff  !cutoff radius
     REAL(8), DIMENSION(3,nat), INTENT(IN) :: rxyz  !coorinates
     REAL(8), DIMENSION(3,3), INTENT(IN) :: alat  !unit cell vectors, if a cluster then alat=0.d0
-    REAL(8), DIMENSION(nat, nat_sphere_max*(ns+3*np)), INTENT(OUT) :: fp  !fingerprint vectors
+    REAL(8), DIMENSION(nat_sphere_max*(ns+3*np),nat), INTENT(OUT) :: fp  !fingerprint vectors
 
     INTEGER, PARAMETER :: nex_cutoff = 2
     INTEGER, PARAMETER :: nwork = 100
@@ -137,7 +137,7 @@ CONTAINS
       ENDDO
 
       DO iorb=1,norb
-        fp(ienv,iorb) = eval(iorb)
+        fp(iorb,ienv) = eval(iorb)
       ENDDO
 
       DEALLOCATE(ovrlp)
@@ -157,8 +157,8 @@ CONTAINS
     REAL(8), INTENT(IN) :: width_cutoff  !cutoff radius
     REAL(8), DIMENSION(3,nat), INTENT(IN) :: rxyz  !coorinates
     REAL(8), DIMENSION(3,3), INTENT(IN) :: alat  !unit cell vectors, if a cluster then alat=0.d0
-    REAL(8), DIMENSION(nat, nat_sphere_max*(ns+3*np)), INTENT(OUT) :: fp  !fingerprint vectors
-    REAL(8), DIMENSION(nat,3,nat,nat_sphere_max*(ns+3*np)) :: dfp !fingerrprint derivatives
+    REAL(8), DIMENSION(nat_sphere_max*(ns+3*np),nat), INTENT(OUT) :: fp  !fingerprint vectors
+    REAL(8), DIMENSION(nat_sphere_max*(ns+3*np),3,nat,nat),INTENT(OUT) :: dfp !fingerrprint derivatives
 
     INTEGER, PARAMETER :: nex_cutoff = 2
     INTEGER, PARAMETER :: nwork = 100
@@ -287,7 +287,7 @@ CONTAINS
       ENDDO
 
       DO iorb=1,norb
-        fp(ienv,iorb) = eval(iorb)
+        fp(iorb,ienv) = eval(iorb)
       ENDDO
 
       xl = rxyz_sphere(1,llat)
@@ -309,9 +309,9 @@ CONTAINS
       DO l = 1, norb
         DO iat=1,nat_sphere
           iiat=indat(iat)
-          dfp(ienv,1,iiat,l)=dfp(ienv,1,iiat,l) + devaldr(1,iat,l)
-          dfp(ienv,2,iiat,l)=dfp(ienv,2,iiat,l) + devaldr(2,iat,l)
-          dfp(ienv,3,iiat,l)=dfp(ienv,3,iiat,l) + devaldr(3,iat,l)
+          dfp(l,1,iiat,ienv)=dfp(l,1,iiat,ienv) + devaldr(1,iat,l)
+          dfp(l,2,iiat,ienv)=dfp(l,2,iiat,ienv) + devaldr(2,iat,l)
+          dfp(l,3,iiat,ienv)=dfp(l,3,iiat,ienv) + devaldr(3,iat,l)
         ENDDO
       ENDDO
 !      do l = 1, norb

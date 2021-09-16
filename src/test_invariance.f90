@@ -40,7 +40,7 @@ program test_invariance
   REAL(8), DIMENSION(3,3) :: alat !unit cell vectors
   REAL(8), DIMENSION(3,nat) :: rxyz0 !atom coordinates
   REAL(8), DIMENSION(3,nat) :: rxyz !atom coordinates
-  REAL(8), DIMENSION(nat, nat_sphere_max*(ns+3*np),2) :: fp !fingerprint for each environment
+  REAL(8), DIMENSION(nat_sphere_max*(ns+3*np),nat,2) :: fp !fingerprint for each environment
   CHARACTER(len=100) :: filename  !name of the file which contains the structure
   CHARACTER(len=2), DIMENSION(nat) :: symb !atomic symbols
 
@@ -102,7 +102,7 @@ program test_invariance
         DO jat = 1, nat
           tt=0.d0
           DO iorb=1,(ns+3*np)*nat_sphere_max
-            tt=tt+(fp(iat,iorb,iconf)-fp(jat,iorb,jconf))**2
+            tt=tt+(fp(iorb,iat,iconf)-fp(iorb,jat,jconf))**2
           ENDDO
           tt=sqrt(tt)
           tmin=min(tmin,tt)

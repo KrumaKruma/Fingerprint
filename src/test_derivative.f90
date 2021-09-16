@@ -42,8 +42,8 @@ program test_derivative
   REAL(8), DIMENSION(3,nat) :: rxyz0 !original atom coordinates
   REAL(8), DIMENSION(3,nat) :: displ
   REAL(8), DIMENSION(3,nat,2) :: dispd
-  REAL(8), DIMENSION(nat, nat_sphere_max*(ns+3*np)) :: fp !fingerprint for each environment
-  REAL(8), DIMENSION(nat, 3, nat, nat_sphere_max*(ns+3*np)) :: dfp !fingerprint derivative for each environment
+  REAL(8), DIMENSION(nat_sphere_max*(ns+3*np), nat) :: fp !fingerprint for each environment
+  REAL(8), DIMENSION(nat_sphere_max*(ns+3*np), 3, nat, nat) :: dfp !fingerprint derivative for each environment
   CHARACTER(len=100) :: filename  !name of the file which contains the structure
   CHARACTER(len=2), DIMENSION(nat) :: symb !atomic symbols
 
@@ -74,7 +74,7 @@ program test_derivative
   stepsize=1.0d0/nint
   rxyz0 = rxyz
   call random_number(dispd)
-  dispd=dispd*0.1d0
+  dispd=dispd*0.01d0
   path = 0.d0
   fact=2*pi/nint
 
@@ -107,16 +107,16 @@ program test_derivative
     CALL fingerprint_and_derivatives(nat, nat_sphere_max, ns, np, width_cutoff, alat,rxyz,symb, fp, dfp)
 
     IF(idispl .eq. 0) THEN
-      fp0 = fp(kat,ifp)
+      fp0 = fp(ifp,kat)
     ENDIF
 
     sumx = 0.d0
     sumy = 0.d0
     sumz = 0.d0
     DO iat = 1, nat
-      sumx = sumx + dfp(kat,1,iat,ifp)
-      sumy = sumy + dfp(kat,2,iat,ifp)
-      sumz = sumz + dfp(kat,3,iat,ifp)
+      sumx = sumx + dfp(ifp,1,iat,kat)
+      sumy = sumy + dfp(ifp,2,iat,kat)
+      sumz = sumz + dfp(ifp,3,iat,kat)
     ENDDO
     IF(sumx**2 .gt. 1.d-12) WRITE(*,*) "sumx", sumx
     IF(sumy**2 .gt. 1.d-12) WRITE(*,*) "sumy", sumy
@@ -127,14 +127,14 @@ program test_derivative
       t2 = 0.d0
       t3 = 0.d0
       DO iat = 1, nat
-        t1 = t1 + dfp(kat,1,iat,ifp)*displ(1,iat)
-        t2 = t2 + dfp(kat,2,iat,ifp)*displ(2,iat)
-        t3 = t3 + dfp(kat,3,iat,ifp)*displ(3,iat)
+        t1 = t1 + dfp(ifp,1,iat,kat)*displ(1,iat)
+        t2 = t2 + dfp(ifp,2,iat,kat)*displ(2,iat)
+        t3 = t3 + dfp(ifp,3,iat,kat)*displ(3,iat)
       ENDDO
     ENDIF
 
     path = path + (t1+t2+t3)*fact
-    WRITE(10,'(I3, e24.7,e24.7)') idispl, fp(kat,ifp), fp0+path
+    WRITE(10,'(I3, e24.7,e24.7)') idispl, fp(ifp,kat), fp0+path
 
   ENDDO
 
