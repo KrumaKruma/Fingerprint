@@ -48,7 +48,7 @@ program fp_simplex
   alat = 0.d0
   ALLOCATE(fp(len_fp,nat, nconf))
   ALLOCATE(fp_contracted(nsimplex, nat, nconf))
-  ALLOCATE(fpcorner(len_fp, nsimplex))
+  ALLOCATE(fpcorner(len_fp, 0:nsimplex))
   ALLOCATE(fpd1_list((nconf*(nconf-1)*nat*nat)/2))
   ALLOCATE(fpd2_list((nconf*(nconf-1)*nat*nat)/2))
 

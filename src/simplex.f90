@@ -30,7 +30,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: nsimplex
     REAL(8), DIMENSION(len_fp, natx, nconf), INTENT(IN) :: fpall
     REAL(8), DIMENSION(nsimplex, natx, nconf), INTENT(OUT) :: fp
-    REAL(8), DIMENSION(len_fp, nsimplex), INTENT(OUT) :: fpcorner
+    REAL(8), DIMENSION(len_fp, 0:nsimplex), INTENT(OUT) :: fpcorner
 
     !dummy
     INTEGER, DIMENSION(0:nsimplex) :: indat
@@ -135,7 +135,7 @@ CONTAINS
     IF(nsim .ne. nsimplex )  WRITE(*,*) "nsim.ne.nsimplex, ", nsim, nsimplex
     DO i = 0, nsim
       DO j = 1, len_fp
-        fpcorner(j, isim) = fpall(j, indat(i), indconf(i))
+        fpcorner(j, i) = fpall(j, indat(i), indconf(i))
       ENDDO
     ENDDO
 
@@ -164,6 +164,7 @@ CONTAINS
         CALL add_point_simplex(nsim+1,nsim+1,distsimplexw,xcartw)
         DO isim = 1, nsim
           fp(isim,iat,iconf) = xcartw(isim,nsim+1)
+          write(122,*) fp(isim,iat,iconf)
         ENDDO
       ENDDO
     ENDDO
@@ -189,7 +190,7 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall, fpallde
   REAL(8), DIMENSION(len_fp, 3, natx, natx, nconf), INTENT(IN) :: fpallder
   REAL(8), DIMENSION(nsimplex, natx, nconf), INTENT(OUT) :: fp
   REAL(8), DIMENSION(nsimplex, 3, natx, natx, nconf), INTENT(OUT) :: fpgrad
-  REAL(8), DIMENSION(len_fp, nsimplex), INTENT(OUT) :: fpcorner
+  REAL(8), DIMENSION(len_fp, 0:nsimplex), INTENT(OUT) :: fpcorner
 
   !dummy
   INTEGER, DIMENSION(0:nsimplex) :: indat
@@ -294,7 +295,7 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall, fpallde
   IF(nsim .ne. nsimplex )  WRITE(*,*) "nsim.ne.nsimplex, ", nsim, nsimplex
   DO i = 0, nsim
     DO j = 1, len_fp
-      fpcorner(j, isim) = fpall(j, indat(i), indconf(i))
+      fpcorner(j, i) = fpall(j, indat(i), indconf(i))
     ENDDO
   ENDDO
 
@@ -317,12 +318,13 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall, fpallde
     DO iat = 1, natx
       distsimplexw(nsim+1,nsim+1)=0.d0
       DO isim = 0, nsim
-        distsimplexw(nsim+1,isim)=fpdf(len_fp,fpall(1,iat,iconf),fpall(1,indat(isim), indconf(isim)) )
+        distsimplexw(nsim+1,isim)=fpdf(len_fp,fpall(1,iat,iconf),fpcorner(1,isim) )
         distsimplexw(isim,nsim+1)=distsimplexw(nsim+1,isim)
       ENDDO
       CALL add_point_simplex(nsim+1,nsim+1,distsimplexw,xcartw)
       DO isim = 1, nsim
         fp(isim,iat,iconf) = xcartw(isim,nsim+1)
+        write(123,*) fp(isim,iat,iconf)
       ENDDO
     ENDDO
   ENDDO
@@ -334,7 +336,7 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall, fpallde
         DO isim = 1, nsim
           DO l = 1, 3
             fpgrad(isim,l,jat,iat,iconf) = (1.d0/xcart(isim,isim))*&
-                sum( (fpall(:,indat(isim), indconf(isim))-fpall(:,indat(0),indconf(0)))*fpallder(:,l,jat,iat,iconf) )
+                sum( (fpcorner(:,isim)-fpcorner(:,0))*fpallder(:,l,jat,iat,iconf) )
             DO jsim=1, isim-1
               fpgrad(isim,l,jat,iat,iconf) = fpgrad(isim,l,jat,iat,iconf) &
                  -(xcart(jsim,isim)/xcart(isim,isim))*fpgrad(jsim,l,jat,iat,iconf)
@@ -345,19 +347,19 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall, fpallde
     ENDDO !jat
   ENDDO !iconf
 
-  DO iconf = 1, nconf
-    DO iat = 1, natx
-      DO isim = 1, nsim
-        fp(isim,iat,iconf) = fp(isim,iat,iconf)/xcart(isim,isim)
-        !if(.true.) write(*,'(3i7,e24.17)') iconf,iat,isim,fp(isim,iat,iconf)
-        DO jat = 1, natx
-          DO l = 1, 3
-            fpgrad(isim,l,jat,iat,iconf) = fpgrad(isim,l,jat,iat,iconf)/xcart(isim,isim)
-          ENDDO
-        ENDDO
-      ENDDO
-    ENDDO
-  ENDDO
+!  DO iconf = 1, nconf
+!    DO iat = 1, natx
+!      DO isim = 1, nsim
+!        fp(isim,iat,iconf) = fp(isim,iat,iconf)/xcart(isim,isim)
+!        !if(.true.) write(*,'(3i7,e24.17)') iconf,iat,isim,fp(isim,iat,iconf)
+!        DO jat = 1, natx
+!          DO l = 1, 3
+!            fpgrad(isim,l,jat,iat,iconf) = fpgrad(isim,l,jat,iat,iconf)/xcart(isim,isim)
+!          ENDDO
+!        ENDDO
+!      ENDDO
+!    ENDDO
+!  ENDDO
 
   DEALLOCATE(xcart)
   DEALLOCATE(distsimplex)
