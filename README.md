@@ -96,10 +96,64 @@ cd build
 ```
 The result is stored in the file **Path_Integration.dat**. The result can be visualized with gnuplot:
 ```bash
-gnuplot plot_results.gnuplot
+gnuplot plot_derivative.gnuplot
 ```
 The output of the plotting is a png image (Path_Integraten.png). If the derivative is correct the two curves should nearly be the same with very small deviations. The deviations should get smaller the more integration steps are used (nint) in the src/test_derivative.f90 file.
 
+
+## Simplex Compression
+With maximum volume simplex method [[1]](#1) the fingerprint the vector length of the fingerprint can be compressed and brought to a unit length for machine learning purpuses. For the simplex compression two templates are aviable. The first template is using the simplex method to compress the fingerprint and also its derivative. The second template can be used for testing the derivative of the simplex compression.
+
+### Simplex Correlation
+This program is compressing the fingerprint to a unit length. If the variable only_fp = .true. only the fingerprint without the derivative is cumputed. Otherwise both, the fingerprint and its derivative are computed. Compiling and running the test for the fingerprint derivatives can be done the following way:
+
+```bash
+make clean
+make 
+make simplex
+cd build
+./simplex.x
+```
+
+If you want to use the intel fortran compiler please use:
+```bash
+make clean
+make FC=ifort
+make simplex FC=ifort
+cd build
+./simplex.x
+```
+
+After executing the program the file Correlation.dat is written which can be used to plot a correlation plot the following way:
+```bash
+gnuplot plot_correlation.gnuplot
+```
+
+
+### Simplex derivative test
+In this template the derivative of the simplex compression is validated using a path integration. Compiling and running the test for the fingerprint derivatives can be done the following way:
+
+```bash
+make clean
+make 
+make test_simplex
+cd build
+./test_simplex.x
+```
+
+If you want to use the intel fortran compiler please use:
+```bash
+make clean
+make FC=ifort
+make test_simplex FC=ifort
+cd build
+./test_simplex.x
+```
+
+The result of the path integration can be plotted the follwing way:
+```bash
+gnuplot plot_derivative_simplex.gnuplot
+```
 
 ## References
 
@@ -114,3 +168,11 @@ J. Chem. Phys, 144(3)
 Sadeghi, A. et al. (2013).
 Metrics for measuring distances in configuration spaces.
 J. Chem. Phys, 139(18)
+
+
+<a id="3">[3]</a> 
+Parsaeifard, B. et al. (2020).
+Maximum volume simplex method for automatic selection and classification of atomic environments and environment descriptor compression.
+J. Chem. Phys, 153(21)
+
+
