@@ -20,6 +20,7 @@ SOURCES3 := $(SRC)/fp_for_clusters.f90
 SOURCES4 := $(SRC)/test_derivative.f90
 SOURCES5 := $(SRC)/test_invariance.f90
 SOURCES6 := $(SRC)/fp_simplex.f90
+SOURCES7 := $(SRC)/test_simplex.f90
 
 default: $(OBJECTS)
 
@@ -37,7 +38,7 @@ fp_cluster: $(SOURCES3) $(OBJECTS)
 	$(FC) $(OBJ)/$(MOD)/fingerprint.o $(OBJ)/$(MOD)/hung.o $(OBJ)/$(MOD)/precision.o $(SOURCES3) -o $(OBJ)/fp_cluster.x $(compile_flags)
 
 test_derivative: $(SOURCES4) $(OBJECTS)
-	cp $(SRC)/plot_derivative.gnuplot $(OBJ)/plot_results.gnuplot; $(FC) $(OBJ)/$(MOD)/fingerprint.o $(SOURCES4) -o $(OBJ)/test_derivative.x $(compile_flags)
+	cp $(SRC)/plot_derivative.gnuplot $(OBJ)/plot_derivative.gnuplot; $(FC) $(OBJ)/$(MOD)/fingerprint.o $(SOURCES4) -o $(OBJ)/test_derivative.x $(compile_flags)
 
 test_invariance: $(SOURCES5) $(OBJECTS)
 	$(FC) $(OBJ)/$(MOD)/fingerprint.o $(OBJ)/$(MOD)/rot.o $(OBJ)/$(MOD)/hung.o $(OBJ)/$(MOD)/precision.o $(SOURCES5) -o $(OBJ)/test_invariance.x $(compile_flags)
@@ -45,6 +46,8 @@ test_invariance: $(SOURCES5) $(OBJECTS)
 simplex: $(SOURCES6) $(OBJECTS)
 	cp $(SRC)/plot_correlation.gnuplot $(OBJ)/plot_correlation.gnuplot; $(FC) $(OBJ)/$(MOD)/fingerprint.o $(OBJ)/$(MOD)/simplex.o $(SOURCES6) -o $(OBJ)/fp_simplex.x $(compile_flags)
 
+test_simplex: $(SOURCES7) $(OBJECTS)
+	cp $(SRC)/plot_derivative_simplex.gnuplot $(OBJ)/plot_derivative_simplex.gnuplot; $(FC) $(OBJ)/$(MOD)/fingerprint.o $(OBJ)/$(MOD)/simplex.o $(SOURCES7) -o $(OBJ)/test_simplex.x $(compile_flags)
 
 bin:
 	mkdir -p build
@@ -52,3 +55,5 @@ bin:
 
 clean:
 	rm -rf $(OBJ)
+	rm -rf data/*dat
+    

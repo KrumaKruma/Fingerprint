@@ -180,7 +180,8 @@ CONTAINS
 
 
 
-subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall, fpallder, fp, fpgrad, fpcorner)
+subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall,&
+   fpallder, fp, fpgrad, fpcorner, ws, rs)
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: len_fp
   INTEGER, INTENT(IN) :: natx
@@ -206,112 +207,175 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall, fpallde
   !REAL(8) :: fpdf
   REAL(8) :: dmax
   REAL(8) :: distmax
+  LOGICAL :: ws
+  LOGICAL :: rs
 
   ALLOCATE(xcart(nsimplex,nsimplex))
   ALLOCATE(distsimplex(0:nsimplex,0:nsimplex))
   ALLOCATE(mask(natx,nconf))
+  IF(rs) THEN
+    nsim = nsimplex
+    ALLOCATE(xcartw(nsim+1,nsim+1))
+    ALLOCATE(distsimplexw(0:nsim+1,0:nsim+1))
 
-  DO j = 0, nsimplex
-    DO i = 0, nsimplex
-      distsimplex(i,j)=0.d0
+    OPEN(UNIT=12, FILE="../data/fp_corner.dat")
+    DO isim = 0,nsimplex
+      DO l = 1, len_fp
+        READ(12,*) fpcorner(l,isim)
+      ENDDO
     ENDDO
-  ENDDO
+    CLOSE(12)
 
-  DO j = 1, nsimplex
-    DO i = 1, nsimplex
-      xcart(i,j)=0.d0
+    OPEN(UNIT=11, FILE="../data/distsimplexw.dat")
+    DO j = 0, nsimplex
+      DO i = 0, nsimplex
+        READ(11,*) distsimplexw(i,j)
+      ENDDO
     ENDDO
-  ENDDO
+    CLOSE(11)
 
-  DO iconf = 1, nconf
-    DO iat = 1, natx
-      mask(iat,iconf)=.true.
+    OPEN(UNIT=56, FILE="../data/xcartw.dat")
+    DO j = 1, nsimplex
+      DO i = 1, nsimplex
+        READ(56,*) xcartw(i,j)
+      ENDDO
     ENDDO
-  ENDDO
+    CLOSE(56)
 
-  CALL largest_pair_dist(len_fp,natx,nconf, fpall,iiat,iiconf,jjat,jjconf,distmax)
-  !WRITE(*,*) iiat, iiconf, jjat, jjconf, distmax
+  ELSE
 
-  indat(0)=iiat
-  indconf(0)=iiconf
-  indat(1)=jjat
-  indconf(1)=jjconf
-  mask(iiat,iiconf)=.false.
-  mask(jjat,jjconf)=.false.
-  xcart(1,1)=distmax
-  distsimplex(0,0)=0.d0
-  distsimplex(1,1)=0.d0
-  distsimplex(0,1)=distmax
-  distsimplex(1,0)=distmax
-
-  DO msim = 2, nsimplex
-
-    dmax=0.d0
-    iiconf=-1
-    iiat=-1
-    DO iconf = 1, nconf
-      DO iat = 1, natx
-        IF(mask(iat,iconf)) THEN
-
-          distsimplex(msim,msim)=0.d0
-          DO isim = 0, msim-1
-            distsimplex(msim,isim)=fpdf(len_fp,fpall(1,iat,iconf),fpall(1,indat(isim),indconf(isim)))
-            distsimplex(isim,msim)=distsimplex(msim,isim)
-          ENDDO
-
-          CALL add_point_simplex(nsimplex,msim,distsimplex,xcart)
-          IF(xcart(msim,msim).gt.dmax) THEN
-            iiconf=iconf
-            iiat=iat
-            dmax=xcart(msim,msim)
-          ENDIF
-
-        ENDIF
+    DO j = 0, nsimplex
+      DO i = 0, nsimplex
+        distsimplex(i,j)=0.d0
       ENDDO
     ENDDO
 
-    IF(dmax.lt.1.d-6) THEN
-      nsim=msim-1
-      goto 2000
-    ENDIF
-
-    distsimplex(msim,msim)=0.d0
-    DO isim = 0, msim-1
-      distsimplex(msim,isim)=fpdf(len_fp,fpall(1,iiat,iiconf),fpall(1,indat(isim),indconf(isim)))
-      distsimplex(isim,msim)=distsimplex(msim,isim)
+    DO j = 1, nsimplex
+      DO i = 1, nsimplex
+        xcart(i,j)=0.d0
+      ENDDO
     ENDDO
 
-    CALL add_point_simplex(nsimplex,msim,distsimplex,xcart)
+    DO iconf = 1, nconf
+      DO iat = 1, natx
+        mask(iat,iconf)=.true.
+      ENDDO
+    ENDDO
 
-    indat(msim)=iiat
-    indconf(msim)=iiconf
+    CALL largest_pair_dist(len_fp,natx,nconf, fpall,iiat,iiconf,jjat,jjconf,distmax)
+    !WRITE(*,*) iiat, iiconf, jjat, jjconf, distmax
+
+    indat(0)=iiat
+    indconf(0)=iiconf
+    indat(1)=jjat
+    indconf(1)=jjconf
     mask(iiat,iiconf)=.false.
+    mask(jjat,jjconf)=.false.
+    xcart(1,1)=distmax
+    distsimplex(0,0)=0.d0
+    distsimplex(1,1)=0.d0
+    distsimplex(0,1)=distmax
+    distsimplex(1,0)=distmax
 
-  ENDDO
-  nsim=nsimplex
+    DO msim = 2, nsimplex
 
-  2000 continue
+      dmax=0.d0
+      iiconf=-1
+      iiat=-1
+      DO iconf = 1, nconf
+        DO iat = 1, natx
+          IF(mask(iat,iconf)) THEN
 
-  IF(nsim .ne. nsimplex )  WRITE(*,*) "nsim.ne.nsimplex, ", nsim, nsimplex
-  DO i = 0, nsim
-    DO j = 1, len_fp
-      fpcorner(j, i) = fpall(j, indat(i), indconf(i))
+            distsimplex(msim,msim)=0.d0
+            DO isim = 0, msim-1
+              distsimplex(msim,isim)=fpdf(len_fp,fpall(1,iat,iconf),fpall(1,indat(isim),indconf(isim)))
+              distsimplex(isim,msim)=distsimplex(msim,isim)
+            ENDDO
+
+            CALL add_point_simplex(nsimplex,msim,distsimplex,xcart)
+            IF(xcart(msim,msim).gt.dmax) THEN
+              iiconf=iconf
+              iiat=iat
+              dmax=xcart(msim,msim)
+            ENDIF
+
+          ENDIF
+        ENDDO
+      ENDDO
+
+      IF(dmax.lt.1.d-6) THEN
+        nsim=msim-1
+        goto 2000
+      ENDIF
+
+      distsimplex(msim,msim)=0.d0
+      DO isim = 0, msim-1
+        distsimplex(msim,isim)=fpdf(len_fp,fpall(1,iiat,iiconf),fpall(1,indat(isim),indconf(isim)))
+        distsimplex(isim,msim)=distsimplex(msim,isim)
+      ENDDO
+
+      CALL add_point_simplex(nsimplex,msim,distsimplex,xcart)
+
+      indat(msim)=iiat
+      indconf(msim)=iiconf
+      mask(iiat,iiconf)=.false.
+
     ENDDO
-  ENDDO
+    nsim=nsimplex
 
+    2000 continue
 
-  ALLOCATE(xcartw(nsim+1,nsim+1))
-  ALLOCATE(distsimplexw(0:nsim+1,0:nsim+1))
-  DO j = 1, nsim
-    DO i = 1, nsim
-      xcartw(i,j)=xcart(i,j)
-    ENDDO
-  ENDDO
-  DO j = 0, nsim
+    IF(nsim .ne. nsimplex )  WRITE(*,*) "nsim.ne.nsimplex, ", nsim, nsimplex
     DO i = 0, nsim
-      distsimplexw(i,j)=distsimplex(i,j)
+      DO j = 1, len_fp
+        fpcorner(j, i) = fpall(j, indat(i), indconf(i))
+      ENDDO
     ENDDO
-  ENDDO
+
+
+    ALLOCATE(xcartw(nsim+1,nsim+1))
+    ALLOCATE(distsimplexw(0:nsim+1,0:nsim+1))
+    DO j = 1, nsim
+      DO i = 1, nsim
+        xcartw(i,j)=xcart(i,j)
+      ENDDO
+    ENDDO
+    DO j = 0, nsim
+      DO i = 0, nsim
+        distsimplexw(i,j)=distsimplex(i,j)
+      ENDDO
+    ENDDO
+
+    IF(ws) THEN
+
+      OPEN(UNIT=10, FILE="../data/xcartw.dat")
+      DO j = 1, nsim
+        DO i = 1, nsim
+          WRITE(10,*) xcartw(i,j)
+        ENDDO
+      ENDDO
+      CLOSE(10)
+
+      OPEN(UNIT=11, FILE="../data/distsimplexw.dat")
+      DO j = 0, nsim
+        DO i = 0, nsim
+          WRITE(11,*) distsimplexw(i,j)
+        ENDDO
+      ENDDO
+      CLOSE(11)
+
+      OPEN(UNIT=12, FILE="../data/fp_corner.dat")
+      DO isim = 0,nsim
+        DO l = 1, len_fp
+          WRITE(12,*) fpcorner(l,isim)
+        ENDDO
+      ENDDO
+      CLOSE(12)
+
+    ENDIF
+  ENDIF
+
+
 
   !contracted fingerprint
   DO iconf = 1, nconf
@@ -324,7 +388,6 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall, fpallde
       CALL add_point_simplex(nsim+1,nsim+1,distsimplexw,xcartw)
       DO isim = 1, nsim
         fp(isim,iat,iconf) = xcartw(isim,nsim+1)
-        write(123,*) fp(isim,iat,iconf)
       ENDDO
     ENDDO
   ENDDO
@@ -335,31 +398,17 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall, fpallde
       DO iat = 1, natx
         DO isim = 1, nsim
           DO l = 1, 3
-            fpgrad(isim,l,jat,iat,iconf) = (1.d0/xcart(isim,isim))*&
+            fpgrad(isim,l,jat,iat,iconf) = (1.d0/xcartw(isim,isim))*&
                 sum( (fpcorner(:,isim)-fpcorner(:,0))*fpallder(:,l,jat,iat,iconf) )
             DO jsim=1, isim-1
               fpgrad(isim,l,jat,iat,iconf) = fpgrad(isim,l,jat,iat,iconf) &
-                 -(xcart(jsim,isim)/xcart(isim,isim))*fpgrad(jsim,l,jat,iat,iconf)
+                 -(xcart(jsim,isim)/xcartw(isim,isim))*fpgrad(jsim,l,jat,iat,iconf)
             ENDDO !jsim
           ENDDO !l
         ENDDO !isim
       ENDDO !iat
     ENDDO !jat
   ENDDO !iconf
-
-!  DO iconf = 1, nconf
-!    DO iat = 1, natx
-!      DO isim = 1, nsim
-!        fp(isim,iat,iconf) = fp(isim,iat,iconf)/xcart(isim,isim)
-!        !if(.true.) write(*,'(3i7,e24.17)') iconf,iat,isim,fp(isim,iat,iconf)
-!        DO jat = 1, natx
-!          DO l = 1, 3
-!            fpgrad(isim,l,jat,iat,iconf) = fpgrad(isim,l,jat,iat,iconf)/xcart(isim,isim)
-!          ENDDO
-!        ENDDO
-!      ENDDO
-!    ENDDO
-!  ENDDO
 
   DEALLOCATE(xcart)
   DEALLOCATE(distsimplex)

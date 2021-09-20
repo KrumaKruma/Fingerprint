@@ -28,6 +28,9 @@ program fp_simplex
   CHARACTER(len=2), DIMENSION(nat,nconf) :: symb !atomic symbols
 
   LOGICAL, PARAMETER :: only_fp = .false.  !if true the fingerprint is calculated. if false both fingerprint and derivatives are calculated!
+  LOGICAL, PARAMETER :: ws = .false.
+  LOGICAL, PARAMETER :: rs = .false.
+
 
   INTEGER :: iconf
   INTEGER :: len_fp
@@ -92,7 +95,7 @@ program fp_simplex
     WRITE(*,*) "--------------------------------------"
     WRITE(*,*) "COMPUTE SIMPLEX CONTRACTION AND DERIVATIVES"
     ALLOCATE(dfp_contracted(nsimplex, 3, nat, nat, nconf))
-    CALL SimplexSparse_derivatve(len_fp, nat, nconf, nsimplex, fp, dfp, fp_contracted, dfp_contracted, fpcorner)
+    CALL SimplexSparse_derivatve(len_fp, nat, nconf, nsimplex, fp, dfp, fp_contracted, dfp_contracted, fpcorner, ws, rs)
     WRITE(*,*) "DONE"
     WRITE(*,*) "--------------------------------------"
   ENDIF
