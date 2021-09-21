@@ -102,7 +102,7 @@ The output of the plotting is a png image (Path_Integraten.png). If the derivati
 
 
 ## Simplex Compression
-With maximum volume simplex method [[1]](#1) the fingerprint the vector length of the fingerprint can be compressed and brought to a unit length for machine learning purpuses. For the simplex compression two templates are aviable. The first template is using the simplex method to compress the fingerprint and also its derivative. The second template can be used for testing the derivative of the simplex compression.
+With maximum volume simplex method [[3]](#3) the fingerprint the vector length of the fingerprint can be compressed and brought to a unit length for machine learning purpuses. For the simplex compression two templates are aviable. The first template is using the simplex method to compress the fingerprint and also its derivative. The second template can be used for testing the derivative of the simplex compression.
 
 ### Simplex Correlation
 This program is compressing the fingerprint to a unit length. If the variable only_fp = .true. only the fingerprint without the derivative is cumputed. Otherwise both, the fingerprint and its derivative are computed. Compiling and running the test for the fingerprint derivatives can be done the following way:
