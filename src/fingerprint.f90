@@ -15,12 +15,44 @@
 
 
 
+!------------------------------------------------------------------------------
+! OM Fingerprint Package
+!------------------------------------------------------------------------------
+!
+! MODULE: Fingerprint
+!
+!> Marco Krummenacher
+!> University of Basel
+!
+! DESCRIPTION:
+!> In this module the Overlap Matrix Fingerprint (OMFP) and its derivative are
+!> be calculated in an efficient way.
+!
+!------------------------------------------------------------------------------
+
+
+
+
 module fingerprint
   IMPLICIT NONE
 CONTAINS
 
 ! Main subroutines
-
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> This routine calculates the OM finperprint vector.
+!
+!> @param[in] nat number of atoms in molecule or unit cell
+!> @param[in] nat_sphere_max maximal number of atoms in sphere
+!> @param[in] ns if 0 NO s-orbitals; if 1 s-orbitals
+!> @param[in] np if 0 NO p-orbitals; if 1 px, py, pz -orbitals
+!> @param[in] width_cutoff width of the cutoff sphere
+!> @param[in] alat unit cell vectors; if cluster alat = 0.0
+!> @param[in] rxyz xyz-positions of the atoms
+!> @param[in] symb atomic symbols
+!> @param[out] fp fingerprint vectors
+!---------------------------------------------------------------------------
   SUBROUTINE only_fingerprint(nat, nat_sphere_max, ns, np, width_cutoff, alat,rxyz, symb, fp)
     INTEGER, INTENT(IN) :: nat      !number of atoms in system
     INTEGER, INTENT(IN) :: ns       !s-orbitals
@@ -79,6 +111,15 @@ CONTAINS
     fp = 0.d0
 
     !loop over all atoms to get a fingerprint vector for each environment
+
+
+
+    !$omp parallel private(ienv, radius_cutoff, ixyzmax, alatalat, amplitude,&
+    !$omp                  llat, nat_sphere, rxyz_sphere, rcov_sphere, indat,&
+    !$omp                  deramplitude, alpha, cs, cp, norb, ovrlp, ampovrlp,&
+    !$omp                  eval,eigalat,workalat)
+    !$omp do schedule(dynamic)
+
     DO ienv=1, nenv
 
 
@@ -145,9 +186,27 @@ CONTAINS
       DEALLOCATE(eval)
       !write(*,*) "Fingerprint of environment", ienv, " : DONE"
     ENDDO
+    !$omp end do
+    !$omp end parallel
 
   END SUBROUTINE
 
+  !---------------------------------------------------------------------------
+  !
+  ! DESCRIPTION:
+  !> This routine calculates the OM finperprint vector and its derivatives
+  !
+  !> @param[in] nat number of atoms in molecule or unit cell
+  !> @param[in] nat_sphere_max maximal number of atoms in sphere
+  !> @param[in] ns if 0 NO s-orbitals; if 1 s-orbitals
+  !> @param[in] np if 0 NO p-orbitals; if 1 px, py, pz -orbitals
+  !> @param[in] width_cutoff width of the cutoff sphere
+  !> @param[in] alat unit cell vectors; if cluster alat = 0.0
+  !> @param[in] rxyz xyz-positions of the atoms
+  !> @param[in] symb atomic symbols
+  !> @param[out] fp fingerprint vectors
+  !> @param[out] dfp derivative of the fingerprint eigenvalues
+  !---------------------------------------------------------------------------
 
   SUBROUTINE fingerprint_and_derivatives(nat, nat_sphere_max, ns, np, width_cutoff, alat,rxyz,symb, fp, dfp)
     INTEGER, INTENT(IN) :: nat      !number of atoms in system
@@ -222,6 +281,15 @@ CONTAINS
     fp = 0.d0
 
     !loop over all atoms to get a fingerprint vector for each environment
+
+    !$omp parallel private(ienv, radius_cutoff, ixyzmax, alatalat, amplitude,&
+    !$omp                  llat, nat_sphere, rxyz_sphere, rcov_sphere, indat,&
+    !$omp                  deramplitude, alpha, cs, cp, norb, ovrlp, ampovrlp,&
+    !$omp                  eval,evecn,tmpA,eigalat,devaldr,dovrlpdr,t1,t2,workalat,i,&
+    !$omp                  iorb,xl,yl,zl,iat,iiorb,iiat)
+    !$omp do schedule(static)
+
+
     DO ienv=1, nenv
 
       radius_cutoff=sqrt(2.d0*nex_cutoff)*width_cutoff
@@ -332,21 +400,48 @@ CONTAINS
       !write(*,*) "Fingerprint of environment", ienv, " : DONE"
     ENDDO
 
+    !$omp end do
+    !$omp end parallel
+
 
 
   END SUBROUTINE
+
 ! subroutines used for calculations
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> Selecting the atoms which are within the sphere of the central atom.
+!> @param[in] width_cutoff width of the cutoff sphere
+!> @param[in] nex_cutoff ??
+!> @param[in] lat array position of central atom in rxyz
+!> @param[out] llat array position of central atom in rxyz_sphere
+!> @param[in] ixyzmax number of neighboring cells to build the sphere
+!> @param[in] nat number of atoms in molecule or unit cell
+!> @param[in] natx_sphere maximal number of atoms in sphere
+!> @param[out] nat_sphere number of atoms in the sphere
+!> @param[in] alat unit cell vectors; if cluster alat = 0.0
+!> @param[in] rxyz xyz-positions of the atoms
+!> @param[out] rxyz_sphere xyz-positions of the atoms in the sphere
+!> @param[in] rcov covalent radii of the atoms corresponding to rxyz
+!> @param[out] rcov_sphere covalent radii of the atoms corresponding to rxyz_sphere
+!> @param[out] indat connecting rxyz and rxyz_sphere
+!> @param[out] amplitude cutoff function values
+!> @param[out] deramplitude derivative of the cutoff function
+!---------------------------------------------------------------------------
+
+
 
   subroutine atoms_sphere(width_cutoff,nex_cutoff,lat,llat,ixyzmax,nat,natx_sphere,nat_sphere,alat,rxyz,rxyz_sphere, &
                           rcov,rcov_sphere,indat,amplitude,deramplitude)
     IMPLICIT NONE
-    INTEGER :: nex_cutoff
-    INTEGER :: lat
-    INTEGER :: llat
-    INTEGER :: ixyzmax
-    INTEGER :: nat
-    INTEGER :: natx_sphere
-    INTEGER :: nat_sphere
+    INTEGER, INTENT(IN) :: nex_cutoff
+    INTEGER, INTENT(IN) :: lat
+    INTEGER, INTENT(IN) :: ixyzmax
+    INTEGER, INTENT(IN) :: nat
+    INTEGER, INTENT(IN) :: natx_sphere
+    INTEGER, INTENT(OUT) :: llat
+    INTEGER, INTENT(OUT) :: nat_sphere
     INTEGER :: ix
     INTEGER :: iy
     INTEGER :: iz
@@ -357,17 +452,17 @@ CONTAINS
     REAL(8) :: radius_cutoff
     REAL(8) :: radius_cutoff2
     REAL(8) :: temp
-    REAL(8) :: width_cutoff
+    REAL(8), INTENT(IN) :: width_cutoff
     REAL(8) :: dist2
     REAL(8) :: factor_cutoff
-    REAL(8), DIMENSION(3,natx_sphere) :: rxyz_sphere
-    REAL(8), DIMENSION(natx_sphere) :: rcov_sphere
-    REAL(8), DIMENSION(natx_sphere) :: amplitude
-    REAL(8), DIMENSION(natx_sphere) :: deramplitude
-    REAL(8), DIMENSION(3,nat) :: rxyz
-    REAL(8), DIMENSION(nat) :: rcov
-    REAL(8), DIMENSION(3,3) :: alat
-    INTEGER, DIMENSION(natx_sphere) :: indat
+    REAL(8), DIMENSION(3,natx_sphere), INTENT(OUT) :: rxyz_sphere
+    REAL(8), DIMENSION(natx_sphere), INTENT(OUT) :: rcov_sphere
+    REAL(8), DIMENSION(natx_sphere), INTENT(OUT) :: amplitude
+    REAL(8), DIMENSION(natx_sphere), INTENT(OUT) :: deramplitude
+    REAL(8), DIMENSION(3,nat), INTENT(IN) :: rxyz
+    REAL(8), DIMENSION(nat), INTENT(IN) :: rcov
+    REAL(8), DIMENSION(3,3), INTENT(IN) :: alat
+    INTEGER, DIMENSION(natx_sphere), INTENT(OUT) :: indat
 
 
     radius_cutoff=sqrt(2.d0*nex_cutoff)*width_cutoff
@@ -408,12 +503,24 @@ CONTAINS
        ENDDO
   end subroutine atoms_sphere
 
-
+  !---------------------------------------------------------------------------
+  !
+  ! DESCRIPTION:
+  !> Construction of the overlap matrix (OM)
+  !> @param[in] nat number of atoms in molecule or unit cell
+  !> @param[in] rxyz xyz-positions of the atoms to cunstruct the OM
+  !> @param[in] alpha ??
+  !> @param[in] cs ??
+  !> @param[in] cp ??
+  !> @param[in] ns if 0 NO s-orbitals; if 1 s-orbitals
+  !> @param[in] np if 0 NO p-orbitals; if 1 px, py, pz -orbitals
+  !> @param[out] ovrlp overlap matrix
+  !---------------------------------------------------------------------------
   subroutine crtovrlp(nat,rxyz,alpha,cs,cp,ns,np,ovrlp)
     IMPLICIT NONE
-    INTEGER :: nat
-    INTEGER :: ns
-    INTEGER :: np
+    INTEGER, INTENT(IN) :: nat
+    INTEGER, INTENT(IN) :: ns
+    INTEGER, INTENT(IN) :: np
     INTEGER :: iat
     INTEGER :: jat
     INTEGER :: iorb
@@ -440,11 +547,11 @@ CONTAINS
     REAL(8) :: xij
     REAL(8) :: yij
     REAL(8) :: zij
-    REAL(8), DIMENSION(3,nat) :: rxyz
-    REAL(8), DIMENSION(nat*(ns+3*np),nat*(ns+3*np)) :: ovrlp
-    REAL(8), DIMENSION(nat) :: alpha
-    REAL(8), DIMENSION(10) :: cs
-    REAL(8), DIMENSION(10) :: cp
+    REAL(8), DIMENSION(3,nat), INTENT(IN) :: rxyz
+    REAL(8), DIMENSION(nat*(ns+3*np),nat*(ns+3*np)), INTENT(OUT) :: ovrlp
+    REAL(8), DIMENSION(nat), INTENT(IN) :: alpha
+    REAL(8), DIMENSION(10), INTENT(IN) :: cs
+    REAL(8), DIMENSION(10), INTENT(IN) :: cp
 
 
     IF(ns>10 .or. np > 10) STOP 'ns > 10   .or.  np > 10  !'
@@ -590,22 +697,32 @@ CONTAINS
 
   end subroutine crtovrlp
 
-
+  !---------------------------------------------------------------------------
+  !
+  ! DESCRIPTION:
+  !> Multiplying the cutoff function to the overlap matrix (OM)
+  !> @param[in] ovrlp overlap matrix
+  !> @param[in] amplitude cutoff function values
+  !> @param[in] norb number of orbitals ((ns+3*np)*nat_sphere)
+  !> @param[in] ns if 0 NO s-orbitals; if 1 s-orbitals
+  !> @param[in] np if 0 NO p-orbitals; if 1 px, py, pz -orbitals
+  !> @param[out] ovrla overlap matrix with including cutoff function
+  !---------------------------------------------------------------------------
   subroutine multamp(nat,ovrlp,amplitude,norb,ns,np,ovrla)
     IMPLICIT NONE
-    INTEGER :: nat
-    INTEGER :: norb
-    INTEGER :: ns
-    INTEGER :: np
+    INTEGER, INTENT(IN) :: nat
+    INTEGER, INTENT(IN) :: norb
+    INTEGER, INTENT(IN) :: ns
+    INTEGER, INTENT(IN) :: np
     INTEGER :: i
     INTEGER :: j
     INTEGER :: iat
     INTEGER :: jat
     INTEGER :: iorb
     INTEGER :: jorb
-    REAL(8), DIMENSION(nat) :: amplitude
-    REAL(8), DIMENSION(norb, norb) :: ovrlp
-    REAL(8), DIMENSION(norb, norb) :: ovrla
+    REAL(8), DIMENSION(nat), INTENT(IN) :: amplitude
+    REAL(8), DIMENSION(norb, norb), INTENT(IN) :: ovrlp
+    REAL(8), DIMENSION(norb, norb), INTENT(OUT) :: ovrla
 
     DO jat = 1,nat
       DO j = 1,(ns+3*np)
@@ -621,12 +738,23 @@ CONTAINS
 
   end subroutine multamp
 
+
+
+  !---------------------------------------------------------------------------
+  !
+  ! DESCRIPTION:
+  !> Diagonalization of a matrix
+  !> @param[in] n size of the n by n matrix
+  !> @param[inout] aa n by n matrix / output are the eigenvectors
+  !> @param[out] eval eigenvalues of the n by n matrix
+  !---------------------------------------------------------------------------
+
   subroutine diagonalizeMatrix(n, aa, eval)
     IMPLICIT NONE
     ! Calling arguments
-    INTEGER :: n
-    REAL(8),DIMENSION(n,n) :: aa
-    REAL(8),DIMENSION(n) :: eval
+    INTEGER, INTENT(IN) :: n
+    REAL(8),DIMENSION(n,n), INTENT(INOUT) :: aa
+    REAL(8),DIMENSION(n), INTENT(IN) :: eval
     ! Local variables
     INTEGER :: info
     INTEGER :: lwork
@@ -640,11 +768,18 @@ CONTAINS
 
   end subroutine diagonalizeMatrix
 
+  !---------------------------------------------------------------------------
+  !
+  ! DESCRIPTION:
+  !> Converting symbols to covalent radii
+  !> @param[in] sym atomic symbol
+  !> @param[out] rcov covalent radius
+  !---------------------------------------------------------------------------
 
   subroutine sym2rcov(sym,rcov)
   ! returns the covalent radius of atom with chemical symbol sym
-    REAL(8)  :: rcov
-    CHARACTER(len=2) :: sym  ! chemical symbol
+    REAL(8), INTENT(OUT)  :: rcov
+    CHARACTER(len=2), INTENT(IN) :: sym  ! chemical symbol
     SELECT CASE (adjustl(trim(sym)))
        ! covalet radius in Angstrom taken from WebElements: http://www.webelements.com/periodicity/covalent_radius/
     CASE('H')
@@ -827,6 +962,25 @@ CONTAINS
 
   endsubroutine sym2rcov
 
+  !---------------------------------------------------------------------------
+  !
+  ! DESCRIPTION:
+  !> Computation of the derivative of the overlap matrix.
+  !> @param[in] norb number of orbitals ((ns+3*np)*nat_sphere)
+  !> @param[in] nat maximal number of atoms
+  !> @param[in] rxyz xyz-positions of the atoms
+  !> @param[in] rcov covalent radii of the atoms
+  !> @param[in] amplitude cutoff function values
+  !> @param[in] deramplitude derivative of the cutoff function
+  !> @param[in] lat array position of central atom in rxyz
+  !> @param[in] xl x position of central atom in rxyz
+  !> @param[in] yl y position of central atom in rxyz
+  !> @param[in] zl z position of central atom in rxyz
+  !> @param[in] ns if 0 NO s-orbitals; if 1 s-orbitals
+  !> @param[in] np if 0 NO p-orbitals; if 1 px, py, pz -orbitals
+  !> @param[out] dovrlpdr derivative of the overlap matrix w.r. atomic positions
+  !> @param[in] ovrlp overlap matrix
+  !---------------------------------------------------------------------------
 
 
   subroutine xyz2ovrlpdr(norb,nat,rxyz,rcov,amplitude,deramplitude,lat,xl,yl,zl,ns,np,dovrlpdr,ovrlp)

@@ -1,9 +1,42 @@
-program fp_for_crystals
+! Copyright (C) 2021 Marco Krummenacher
+!
+! This program is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! This program is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+!------------------------------------------------------------------------------
+! OM Fingerprint Package
+!------------------------------------------------------------------------------
+!
+! MAIN: fp_distance
+!
+!> Marco Krummenacher
+!> University of Basel
+!
+! DESCRIPTION:
+!> This program calculates the fingerprint distance based on the overlap matrix
+!> fingerprint.
+!
+!------------------------------------------------------------------------------
+
+
+program fp_distance
   use fingerprint
   use hung
   IMPLICIT NONE
   INTEGER, PARAMETER :: nat = 40    !number of atoms in the unit cell
-  INTEGER, PARAMETER :: nconf = 2
+  INTEGER, PARAMETER :: nconf = 2   ! number of configurations
   INTEGER, PARAMETER :: ns = 1      !using s-orbitals 1->yes, 0->no
   INTEGER, PARAMETER :: np = 1      !using p-orbitals 1->yes, 0->no
   INTEGER, PARAMETER :: nat_sphere_max = 100 !maximal number of atoms in the sphere
@@ -127,6 +160,18 @@ program fp_for_crystals
   WRITE(*,*) "======================================"
 end program
 
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> Reading ascii file
+!
+!> @param[in] filename filename of the configurations
+!> @param[in] nat number of atoms in the file
+!> @param[in] nconf number of configurations in the file
+!> @param[out] rxyz xyz-positions of the atoms
+!> @param[in] alat unit cell vectors; if cluster alat = 0.0
+!> @param[in] symb atomic symbols
+!---------------------------------------------------------------------------
 
 subroutine read_ascii(filename, nat, nconf, rxyz, alat, symb)
   IMPLICIT NONE

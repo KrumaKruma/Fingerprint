@@ -13,6 +13,20 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+!------------------------------------------------------------------------------
+! OM Fingerprint Package
+!------------------------------------------------------------------------------
+!
+! MAIN: fp_for_crystals
+!
+!> Marco Krummenacher
+!> University of Basel
+!
+! DESCRIPTION:
+!> Calculates the fingerpint of a crystal
+!
+!------------------------------------------------------------------------------
+
 program fp_for_crystals
   use fingerprint
   IMPLICIT NONE
@@ -120,6 +134,17 @@ program fp_for_crystals
   WRITE(*,*) "======================================"
 end program
 
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> Reading of an ascii-file.
+!
+!> @param[in] filename name of the xyz-file
+!> @param[in] nat number of atoms in the cluster
+!> @param[out] rxyz xyz-positions of the atoms
+!> @param[out] alat unit cell vecotrs of the crystal
+!> @param[out] symb atomic symbols of the atoms
+!---------------------------------------------------------------------------
 
 subroutine read_ascii(filename, nat, rxyz, alat, symb)
   IMPLICIT NONE

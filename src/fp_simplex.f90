@@ -1,3 +1,32 @@
+! Copyright (C) 2021 Marco Krummenacher
+!
+! This program is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! This program is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+!------------------------------------------------------------------------------
+! OM Fingerprint Package
+!------------------------------------------------------------------------------
+!
+! MAIN: fp_simplex
+!
+!> Marco Krummenacher
+!> University of Basel
+!
+! DESCRIPTION:
+!> calculates correlation plot between maximum volume contracted fingerprint
+!> and non contracted fingerprint.
+!------------------------------------------------------------------------------
+
 program fp_simplex
   use fingerprint
   use simplex
@@ -155,6 +184,17 @@ program fp_simplex
 
 end program
 
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> Reading of an xyz-file.
+!
+!> @param[in] filename name of the xyz-file
+!> @param[in] nat number of atoms in the cluster
+!> @param[in] nconf number of configurations in xyz-file
+!> @param[out] rxyz xyz-positions of the atoms
+!> @param[out] symb atomic symbols of the atoms
+!---------------------------------------------------------------------------
 
 
 subroutine read_xyz(filename, nat, nconf, rxyz, symb)
@@ -190,6 +230,22 @@ subroutine read_xyz(filename, nat, nconf, rxyz, symb)
   ENDDO
   CLOSE(10)
 end subroutine
+
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> Compute fingerprint distances of contracted and non-contracted fingerprint
+!
+!> @param[in] nconf number of configurations
+!> @param[in] nat number of atoms in the cluster
+!> @param[in] len_fp length of the fingerprint
+!> @param[in] nsimplex length of the simplex contracted fingerprint
+!> @param[in] fp non-contracted overlap matrix fingerprint
+!> @param[in] fp_contracted simplex contracted fingerprint
+!> @param[out] fpd1_list fingerprint distances of non contracted fingerprint
+!> @param[out] fpd2_list fingerprint distance of contracted fingerprint
+!---------------------------------------------------------------------------
+
 
 subroutine correlation(nconf, nat, len_fp, nsimplex, fp, fp_contracted, fpd1_list, fpd2_list)
   IMPLICIT NONE
@@ -234,6 +290,19 @@ subroutine correlation(nconf, nat, len_fp, nsimplex, fp, fp_contracted, fpd1_lis
   !!print*, "COUNTER:   ", counter
 end subroutine
 
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> Compute histogram output
+!
+!> @param[in] out_file output filename of the histogram for plotting
+!> @param[in] nat number of atoms in the cluster
+!> @param[in] nconf number of configurations
+!> @param[in] noise1 noise of the non-contracted fingerprint
+!> @param[in] noise2 noise of the contracted fingerprint
+!> @param[in] fpd1_list fingerprint distances of non contracted fingerprint
+!> @param[in] fpd2_list fingerprint distance of contracted fingerprint
+!---------------------------------------------------------------------------
 
 subroutine histogram(out_file, nat, nconf, noise1, noise2, fpd1_list, fpd2_list)
   IMPLICIT NONE
@@ -298,6 +367,20 @@ subroutine histogram(out_file, nat, nconf, noise1, noise2, fpd1_list, fpd2_list)
 
 
 end subroutine
+
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> Compute histogram output
+!
+!> @param[in] only_fp if true only the fingerprint is written to a file
+!> @param[in] out_file2 output filename of the simplex contracted fingerprint
+!> @param[in] out_file3 output filename of the simplex contracted fingerprint derivatives
+!> @param[in] nat number of atoms in the cluster
+!> @param[in] nconf number of configurations
+!> @param[in] fp_contracted simplex contracted fingerprint
+!> @param[in] dfp_contracted simplex contracted fingerprint derivatives
+!---------------------------------------------------------------------------
 
 
 subroutine write_fp(only_fp, out_file2, out_file3, nat, nconf, nsimplex, fp_contracted, dfp_contracted)

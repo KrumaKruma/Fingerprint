@@ -17,10 +17,43 @@
 
 !!! TODO THERE IS STILL A GOTO STATEMENT...
 
+!------------------------------------------------------------------------------
+! OM Fingerprint Package
+!------------------------------------------------------------------------------
+!
+! MODULE: Fingerprint
+!
+!> Marco Krummenacher
+!> University of Basel
+!
+! DESCRIPTION:
+!> In this module a maximum volume simplex compression is applied to the
+!> overlap matrix fingerprint. The compressed fingerprint as well as its
+!> derivative can be calculated.
+!------------------------------------------------------------------------------
+
+
+
+
 module simplex
   IMPLICIT NONE
 
 CONTAINS
+
+  ! Main subroutines
+  !---------------------------------------------------------------------------
+  !
+  ! DESCRIPTION:
+  !> This routine calculates the simplex corner and the compressed fingerprint
+  !> vector.
+  !> @param[in] len_fp length of the fingerprint vector
+  !> @param[in] natx number of atoms (environments)
+  !> @param[in] nconf number of configurations
+  !> @param[in] nsimplex number of corners for the compression
+  !> @param[in] fpall fingerprint vecotr of all configurations and environments
+  !> @param[out] fp compressed fingerprint
+  !> @param[out] fpcorner fingerprint of the simplex corners
+  !---------------------------------------------------------------------------
 
   subroutine SimplexSparse(len_fp, natx, nconf, nsimplex, fpall, fp, fpcorner)
     IMPLICIT NONE
@@ -177,6 +210,24 @@ CONTAINS
     DEALLOCATE(mask)
   end subroutine
 
+  ! Main subroutines
+  !---------------------------------------------------------------------------
+  !
+  ! DESCRIPTION:
+  !> This routine calculates the simplex corner and the compressed fingerprint
+  !> vector.
+  !> @param[in] len_fp length of the fingerprint vector
+  !> @param[in] natx number of atoms (environments)
+  !> @param[in] nconf number of configurations
+  !> @param[in] nsimplex number of corners for the compression
+  !> @param[in] fpall fingerprint vecotor of all configurations and environments
+  !> @param[in] fpallder derivative fingerprint vecotor of all configurations and environments
+  !> @param[out] fp compressed fingerprint
+  !> @param[out] fpgrad compressed fingerprint derivatives
+  !> @param[out] fpcorner fingerprint of the simplex corners
+  !> @param[in] ws if true, write simpex information to files
+  !> @param[in] rs if true, read simplex information from files
+  !---------------------------------------------------------------------------
 
 
 
@@ -453,6 +504,22 @@ subroutine add_point_simplex(nsimplex,nsim,dist,xcart)
 
 end subroutine add_point_simplex
 
+! Main subroutines
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> Find largest fingerprint pair distance
+!> @param[in] len_fp length of the fingerprint vector
+!> @param[in] natx number of atoms (environments)
+!> @param[in] nconf number of configurations
+!> @param[in] fpall fingerprint vecotor of all configurations and environments
+!> @param[out] iiat ith environment which has largest dist to jth environment
+!> @param[out] iiconf ith configuration which has largest dist to jth configuration
+!> @param[out] jjat jth environment which has largest dist to ith environment
+!> @param[out] jjconf jth configuration which has largest dist to ith configuration
+!> @param[out] distmax maximal fingerprint distance
+
+!---------------------------------------------------------------------------
 
 subroutine largest_pair_dist(len_fp,natx,nconf,fpall,iiat,iiconf,jjat,jjconf,distmax)
 !  Find points with the largest distances
@@ -497,6 +564,17 @@ subroutine largest_pair_dist(len_fp,natx,nconf,fpall,iiat,iiconf,jjat,jjconf,dis
   ENDDO
 end subroutine largest_pair_dist
 
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> fingerprint distance of two fingerprint vectors
+!> @param[in] len length of the fingerprint vector
+!> @param[in] fp1 fingerprint vecotor 1
+!> @param[in] fp2 fingerprint vector 2
+!> @param[out] fpd fingerprint distance
+!---------------------------------------------------------------------------
+
+
 function fpdf(len,fp1,fp2) result(fpd)
  IMPLICIT NONE
  INTEGER, INTENT(IN) :: len
@@ -513,7 +591,11 @@ function fpdf(len,fp1,fp2) result(fpd)
  fpd=sqrt(tt)
 
 end
-
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> citation of the maximum volume simplex method
+!---------------------------------------------------------------------------
 subroutine cite_simplex()
   WRITE(*,*) "--> B. Parsaeifard et al. Machine Learning: Science and Technology 2, 015018 (2021)"
 end subroutine

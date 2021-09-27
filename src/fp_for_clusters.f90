@@ -13,8 +13,21 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+!------------------------------------------------------------------------------
+! OM Fingerprint Package
+!------------------------------------------------------------------------------
+!
+! MAIN: fp_for_clusters
+!
+!> Marco Krummenacher
+!> University of Basel
+!
+! DESCRIPTION:
+!> This calculates the fingerprint of a cluster system
+!
+!------------------------------------------------------------------------------
 
-program fp_for_crystals
+program fp_for_clusters
   use fingerprint
   IMPLICIT NONE
   !REAL(8) is used in the present version
@@ -123,6 +136,17 @@ program fp_for_crystals
   WRITE(*,*) "PROGRAM FINISHED SUCCESSFUL"
   WRITE(*,*) "======================================"
 end program
+
+!---------------------------------------------------------------------------
+!
+! DESCRIPTION:
+!> Reading of an xyz-file.
+!
+!> @param[in] filename name of the xyz-file
+!> @param[in] nat number of atoms in the cluster
+!> @param[out] rxyz xyz-positions of the atoms
+!> @param[out] symb atomic symbols of the atoms
+!---------------------------------------------------------------------------
 
 
 subroutine read_xyz(filename, nat, rxyz, symb)
