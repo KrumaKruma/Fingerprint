@@ -80,6 +80,20 @@ CONTAINS
     REAL(8) :: dmax
     REAL(8) :: distmax
 
+
+    REAL(8) :: t1
+    REAL(8) :: t2
+    REAL(8) :: time
+    INTEGER :: count1
+    INTEGER :: count2
+    INTEGER :: count_rate
+    INTEGER :: count_max
+
+
+
+
+
+
     ALLOCATE(xcart(nsimplex,nsimplex))
     ALLOCATE(distsimplex(0:nsimplex,0:nsimplex))
     ALLOCATE(mask(natx,nconf))
@@ -101,9 +115,17 @@ CONTAINS
         mask(iat,iconf)=.true.
       ENDDO
     ENDDO
-
+    CALL cpu_time(t1)
+    CALL system_clock(count1,count_rate,count_max)
     CALL largest_pair_dist(len_fp,natx,nconf, fpall,iiat,iiconf,jjat,jjconf,distmax)
     !WRITE(*,*) iiat, iiconf, jjat, jjconf, distmax
+    CALL cpu_time(t2)
+    CALL system_clock(count2,count_rate,count_max)
+    WRITE(*,*) 'CPU time 1:    ', t2-t1, " s"
+    time=(count2-count1)/float(count_rate)
+    WRITE(*,*) 'Elapsed time1 ', time ," s"
+
+
 
     indat(0)=iiat
     indconf(0)=iiconf
@@ -117,6 +139,9 @@ CONTAINS
     distsimplex(0,1)=distmax
     distsimplex(1,0)=distmax
 
+
+    CALL cpu_time(t1)
+    CALL system_clock(count1,count_rate,count_max)
     DO msim = 2, nsimplex
 
       dmax=0.d0
@@ -142,19 +167,40 @@ CONTAINS
           ENDIF
         ENDDO
       ENDDO
+      CALL cpu_time(t2)
+      CALL system_clock(count2,count_rate,count_max)
+      WRITE(*,*) 'CPU time 2:    ', t2-t1, " s"
+      time=(count2-count1)/float(count_rate)
+      WRITE(*,*) 'Elapsed time ', time ," s"
+
 
       IF(dmax.lt.1.d-6) THEN
         nsim=msim-1
         goto 2000
       ENDIF
-
+      CALL cpu_time(t1)
+      CALL system_clock(count1,count_rate,count_max)
       distsimplex(msim,msim)=0.d0
       DO isim = 0, msim-1
         distsimplex(msim,isim)=fpdf(len_fp,fpall(1,iiat,iiconf),fpall(1,indat(isim),indconf(isim)))
         distsimplex(isim,msim)=distsimplex(msim,isim)
       ENDDO
+      CALL cpu_time(t2)
+      CALL system_clock(count2,count_rate,count_max)
+      WRITE(*,*) 'CPU time 3:    ', t2-t1, " s"
+
+
+      CALL cpu_time(t1)
+      CALL system_clock(count1,count_rate,count_max)
+
 
       CALL add_point_simplex(nsimplex,msim,distsimplex,xcart)
+
+
+      CALL cpu_time(t2)
+      CALL system_clock(count2,count_rate,count_max)
+      WRITE(*,*) 'CPU time 4:    ', t2-t1, " s"
+
 
       indat(msim)=iiat
       indconf(msim)=iiconf
@@ -187,6 +233,10 @@ CONTAINS
     ENDDO
 
     !contracted fingerprint
+    CALL cpu_time(t1)
+    CALL system_clock(count1,count_rate,count_max)
+
+
     DO iconf = 1, nconf
       DO iat = 1, natx
         distsimplexw(nsim+1,nsim+1)=0.d0
@@ -201,6 +251,13 @@ CONTAINS
         ENDDO
       ENDDO
     ENDDO
+
+
+
+
+    CALL cpu_time(t2)
+    CALL system_clock(count2,count_rate,count_max)
+    WRITE(*,*) 'CPU time 5:    ', t2-t1, " s"
 
 
     DEALLOCATE(xcart)
@@ -537,32 +594,58 @@ subroutine largest_pair_dist(len_fp,natx,nconf,fpall,iiat,iiconf,jjat,jjconf,dis
 
   INTEGER :: ic, jc, iat, jat, iconf, jconf
 
+  LOGICAL :: is_gt
+
+  REAL(8) :: local_distmax
+  INTEGER :: local_iiat
+  INTEGER :: local_iiconf
+  INTEGER :: local_jjat
+  INTEGER :: local_jjconf
+
   distmax=0.d0
-  ic=0
-  DO iconf = 1, nconf
-    DO iat = 1, natx
-      ic=ic+1
-      jc=0
-      DO jconf = 1, nconf
-        DO jat = 1, natx
-          jc=jc+1
-          IF(jc.lt.ic) THEN
-            fpd=fpdf(len_fp,fpall(1,iat,iconf),fpall(1,jat,jconf))
-            IF (fpd.gt.distmax) THEN
-              distmax=fpd
-              iiat=iat
-              iiconf=iconf
-              jjat=jat
-              jjconf=jconf
-              !        ii=ic
-              !        jj=jc
-            ENDIF
-          ENDIF
+
+  !$omp parallel private(iconf, iat, jconf, jat, fpd,&
+    !$omp     &local_distmax,local_iiat,local_jjat,local_iiconf,local_jjconf)
+    local_distmax=-1.d99
+    local_iiat=0
+    local_iiconf=0
+    local_jjat=0
+    local_jjconf=0
+    !$omp do schedule(guided) collapse(2)
+    DO iconf = 1, nconf
+      DO iat = 1, natx
+        DO jconf = iconf+1, nconf
+          DO jat = 1, natx
+              fpd=fpdf(len_fp,fpall(1,iat,iconf),fpall(1,jat,jconf))
+              IF (fpd .gt. local_distmax) THEN
+                local_distmax= fpd
+                local_iiat=iat
+                local_iiconf=iconf
+                local_jjat=jat
+                local_jjconf=jconf
+              ENDIF
+          ENDDO
         ENDDO
       ENDDO
     ENDDO
-  ENDDO
+    !$omp end do
+    !$omp critical
+    if(local_distmax.gt.distmax) THEN
+      distmax=local_distmax
+      iiat=local_iiat
+      jjat=local_jjat
+      iiconf=local_iiconf
+      jjconf=local_jjconf
+    endif
+    !$omp end critical
+    !$omp end parallel
+
 end subroutine largest_pair_dist
+
+
+
+
+
 
 !---------------------------------------------------------------------------
 !
