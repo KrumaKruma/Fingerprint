@@ -80,6 +80,9 @@ CONTAINS
     REAL(8) :: dmax
     REAL(8) :: distmax
 
+    REAL(8) :: local_dmax
+    INTEGER :: local_iiat
+    INTEGER :: local_iiconf
 
     REAL(8) :: t1
     REAL(8) :: t2
@@ -147,6 +150,16 @@ CONTAINS
       dmax=0.d0
       iiconf=-1
       iiat=-1
+
+      !$omp parallel private(iconf, iat, isim,&
+      !$omp     &local_dmax,local_iiat,local_iiconf) firstprivate(distsimplex, xcart)
+
+      local_dmax=0.d0
+      local_iiconf=-1
+      local_iiat=-1
+
+      !$omp do schedule(guided) collapse(2)
+
       DO iconf = 1, nconf
         DO iat = 1, natx
           IF(mask(iat,iconf)) THEN
@@ -158,20 +171,32 @@ CONTAINS
             ENDDO
 
             CALL add_point_simplex(nsimplex,msim,distsimplex,xcart)
-            IF(xcart(msim,msim).gt.dmax) THEN
-              iiconf=iconf
-              iiat=iat
-              dmax=xcart(msim,msim)
+            IF(xcart(msim,msim).gt.local_dmax) THEN
+              local_iiconf=iconf
+              local_iiat=iat
+              local_dmax=xcart(msim,msim)
             ENDIF
 
           ENDIF
         ENDDO
       ENDDO
+      !$omp end do
+      !$omp critical
+      IF(local_dmax .ge. dmax) THEN
+        dmax = local_dmax
+        iiat = local_iiat
+        iiconf = local_iiconf
+      ENDIF
+      !$omp end critical
+      !$omp end parallel
+
+
+
       CALL cpu_time(t2)
       CALL system_clock(count2,count_rate,count_max)
       WRITE(*,*) 'CPU time 2:    ', t2-t1, " s"
       time=(count2-count1)/float(count_rate)
-      WRITE(*,*) 'Elapsed time ', time ," s"
+      WRITE(*,*) 'Elapsed time 2', time ," s"
 
 
       IF(dmax.lt.1.d-6) THEN
@@ -236,7 +261,8 @@ CONTAINS
     CALL cpu_time(t1)
     CALL system_clock(count1,count_rate,count_max)
 
-
+    !$omp parallel private(iconf, iat, isim) firstprivate(distsimplexw, xcartw)
+    !$omp do schedule(guided) collapse(2)
     DO iconf = 1, nconf
       DO iat = 1, natx
         distsimplexw(nsim+1,nsim+1)=0.d0
@@ -247,12 +273,12 @@ CONTAINS
         CALL add_point_simplex(nsim+1,nsim+1,distsimplexw,xcartw)
         DO isim = 1, nsim
           fp(isim,iat,iconf) = xcartw(isim,nsim+1)
-          write(122,*) fp(isim,iat,iconf)
+          !write(122,*) fp(isim,iat,iconf)
         ENDDO
       ENDDO
     ENDDO
-
-
+    !$omp end do
+    !$omp end parallel
 
 
     CALL cpu_time(t2)
@@ -317,6 +343,11 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall,&
   REAL(8) :: distmax
   LOGICAL :: ws
   LOGICAL :: rs
+
+  REAL(8) :: local_dmax
+  INTEGER :: local_iiconf
+  INTEGER :: local_iiat
+
 
   ALLOCATE(xcart(nsimplex,nsimplex))
   ALLOCATE(distsimplex(0:nsimplex,0:nsimplex))
@@ -390,6 +421,15 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall,&
       dmax=0.d0
       iiconf=-1
       iiat=-1
+
+      !$omp parallel private(iconf, iat,&
+      !$omp     &local_dmax,local_iiat,local_iiconf) firstprivate(distsimplex, xcart)
+
+      local_dmax=0.d0
+      local_iiconf=-1
+      local_iiat=-1
+
+      !$omp do schedule(guided) collapse(2)
       DO iconf = 1, nconf
         DO iat = 1, natx
           IF(mask(iat,iconf)) THEN
@@ -410,6 +450,19 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall,&
           ENDIF
         ENDDO
       ENDDO
+      !$omp end do
+      !$omp critical
+      IF(local_dmax .ge. dmax) THEN
+        dmax = local_dmax
+        iiat = local_iiat
+        iiconf = local_iiconf
+      ENDIF
+      !$omp end critical
+      !$omp end parallel
+
+
+
+
 
       IF(dmax.lt.1.d-6) THEN
         nsim=msim-1
@@ -486,6 +539,8 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall,&
 
 
   !contracted fingerprint
+  !$omp parallel private(iconf, iat, isim) firstprivate(distsimplexw, xcartw)
+  !$omp do schedule(guided) collapse(2)
   DO iconf = 1, nconf
     DO iat = 1, natx
       distsimplexw(nsim+1,nsim+1)=0.d0
@@ -499,8 +554,16 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall,&
       ENDDO
     ENDDO
   ENDDO
+  !$omp end do
+  !$omp end parallel
+
+
   !contracted derivatives
   !derivative of fingerprint of iat with respect to cartesian coordinates of jat
+
+
+  !$omp parallel private(iconf, iat, jat, isim, jsim, l) firstprivate(xcartw, xcart, fpcorner)
+  !$omp do schedule(guided) collapse(3)
   DO iconf = 1, nconf
     DO jat = 1, natx
       DO iat = 1, natx
@@ -517,6 +580,8 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall,&
       ENDDO !iat
     ENDDO !jat
   ENDDO !iconf
+  !$omp end do
+  !$omp end parallel
 
   DEALLOCATE(xcart)
   DEALLOCATE(distsimplex)

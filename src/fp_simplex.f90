@@ -56,7 +56,7 @@ program fp_simplex
   CHARACTER(len=100) :: out_file3  !name of the file which contains the structure
   CHARACTER(len=2), DIMENSION(nat,nconf) :: symb !atomic symbols
 
-  LOGICAL, PARAMETER :: only_fp = .true.  !if true the fingerprint is calculated. if false both fingerprint and derivatives are calculated!
+  LOGICAL, PARAMETER :: only_fp = .false.  !if true the fingerprint is calculated. if false both fingerprint and derivatives are calculated!
   LOGICAL, PARAMETER :: ws = .false.
   LOGICAL, PARAMETER :: rs = .false.
 
