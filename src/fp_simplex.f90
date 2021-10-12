@@ -262,32 +262,38 @@ subroutine correlation(nconf, nat, len_fp, nsimplex, fp, fp_contracted, fpd1_lis
   REAL(8), DIMENSION((nconf*(nconf-1)*nat*nat)/2) :: fpd1_list
   REAL(8), DIMENSION((nconf*(nconf-1)*nat*nat)/2) :: fpd2_list
 
+
+  integer :: old_counter
   counter = 1
+  old_counter = 1
 
-  DO iconf = 1, nconf
-    DO iat = 1, nat
-      DO jconf = iconf+1, nconf
-        DO jat = 1, nat
+  !$omp parallel private(iat, jat, iconf, jconf, dist1, dist2)
+  !$omp do schedule(guided) collapse(2)
 
+  DO iat = 1, nat
+    DO jat = 1, nat
+      DO iconf = 1, nconf
+        DO jconf = iconf+1, nconf
+          counter = (iat-1)*(((nat*nconf*(nconf-1))/2))+ ((jat-1)*((nconf*(nconf-1))/2))+((((jconf-2)*(jconf-1))))/2+iconf
           dist1=0.d0
           DO l = 1, len_fp
             dist1=dist1+(fp(l,iat, iconf)-fp(l,jat, jconf))**2
           ENDDO
           dist1=sqrt(dist1)
           fpd1_list(counter) = dist1
-          !!print*, iconf, iat, jconf, jat
+
           dist2=0.d0
           DO l = 1, nsimplex
             dist2=dist2+(fp_contracted(l,iat, iconf)-fp_contracted(l,jat, jconf))**2
           ENDDO
           dist2=sqrt(dist2)
           fpd2_list(counter) = dist2
-          counter = counter + 1
         ENDDO
       ENDDO
     ENDDO
   ENDDO
-  !!print*, "COUNTER:   ", counter
+  !$omp end do
+  !$omp end parallel
 end subroutine
 
 !---------------------------------------------------------------------------
