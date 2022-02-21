@@ -1,6 +1,17 @@
 # Fingerprint
 The module fingerprint can be used for the computation of overlap matrix based fingerprints. The fingerprint vector contains the eigenvalues of the overlap matrix which is itself constructed from gaussian type orbitals. More detailed information can be found in [[1]](#1) and [[2]](#2). The fingerprint can be calculated for periodic structures (src/fp_for_crystals.f90) or for clusters (src/fp_for_clusters.f90). For the calculation of non-periodic systems the lattice vectors (alat) have to be set to zero. For periodic systems the matrix alat contains columnwise the lattice vectors.
 
+## Compiling Options
+For all templates and modules the Makefile contains a compiling option DEBUG, where open-mp and all optimization flags are turned off for debugging the code. An example how this is used together with the intel you can find below:
+```bash
+make clean
+make FC=ifort DEBUG=True
+make fp_crystal FC=ifort DEBUG=True
+cd build
+./fp_crystal.x
+```
+The debug compiling flag is neither limited to the intel compiler nor to the template you are choosing to compile.
+
 ## Periodic Version
 The periodic version (src/fp_for_crystals.f90) is a template program to calculate the fingerprint of an Alanate crystal. If only the fingerprint without the derivative shall be calculated please set only_fp = .true., otherwise also the derivative of the fingerprint will be calculated and written into a file. Compiling this version can be done in the following way:
 ```bash
