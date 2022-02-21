@@ -10,7 +10,15 @@ make fp_crystal FC=ifort DEBUG=True
 cd build
 ./fp_crystal.x
 ```
-The debug compiling flag is neither limited to the intel compiler nor to the template you are choosing to compile.
+The debug compiling flag is neither limited to the intel compiler nor to the template you are choosing to compile. By using the intel compiler, the lapack and blas operations are linked via the mkl library. If the gfortran compiler is used (default) it is linked to the standard lapack and blas libraries but it can also be linked to the ScaLAPACK and OpenBLAS library by using the following compiling flag:
+```bash
+make clean
+make LAPACK=-lscalapack BLAS=-lopenblas
+make fp_crystal LAPACK=-lscalapack BLAS=-lopenblas
+cd build
+./fp_crystal.x
+```
+
 
 ## Periodic Version
 The periodic version (src/fp_for_crystals.f90) is a template program to calculate the fingerprint of an Alanate crystal. If only the fingerprint without the derivative shall be calculated please set only_fp = .true., otherwise also the derivative of the fingerprint will be calculated and written into a file. Compiling this version can be done in the following way:
