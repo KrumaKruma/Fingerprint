@@ -90,8 +90,8 @@ CONTAINS
     REAL(8), DIMENSION(3,3) :: alatalat
     REAL(8), DIMENSION(3) :: eigalat
     REAL(8), DIMENSION(nwork) :: workalat
-    REAL(8), DIMENSION(nat_sphere_max) :: amplitude
-    REAL(8), DIMENSION(nat_sphere_max) :: deramplitude
+    REAL(8), DIMENSION(nat_sphere_max) :: amplitude_tmp
+    REAL(8), DIMENSION(nat_sphere_max) :: deramplitude_tmp
     REAL(8), DIMENSION(nat_sphere_max) :: alpha
     REAL(8), DIMENSION(10) :: cs
     REAL(8), DIMENSION(10) :: cp
@@ -99,6 +99,8 @@ CONTAINS
     REAL(8), ALLOCATABLE :: ovrlp(:,:)
     REAL(8), ALLOCATABLE :: ampovrlp(:,:)
     REAL(8), ALLOCATABLE :: eval(:)
+    REAL(8), ALLOCATABLE :: amplitude(:)
+    REAL(8), ALLOCATABLE :: deramplitude(:)
 
     CHARACTER(len=2), DIMENSION(nat) :: symb
 
@@ -118,7 +120,7 @@ CONTAINS
     !$omp parallel private(ienv, radius_cutoff, ixyzmax, alatalat, amplitude,&
     !$omp                  llat, nat_sphere, rxyz_sphere, rcov_sphere, indat,&
     !$omp                  deramplitude, alpha, cs, cp, norb, ovrlp, ampovrlp,&
-    !$omp                  eval,eigalat,workalat)
+    !$omp                  eval,eigalat,workalat, amplitude_tmp, deramplitude_tmp)
     !$omp do schedule(dynamic)
 
     DO ienv=1, nenv
@@ -139,14 +141,18 @@ CONTAINS
         ixyzmax= int(sqrt(1.d0/eigalat(1))*radius_cutoff) + 1
       ENDIF
 
-      amplitude = 0.d0
-      deramplitude = 0.d0
+      amplitude_tmp = 0.d0
+      deramplitude_tmp = 0.d0
       !determine the atoms which are within the sphere
       CALL atoms_sphere(width_cutoff,nex_cutoff,ienv,llat,ixyzmax,nat,nat_sphere_max,nat_sphere,alat,rxyz,rxyz_sphere, &
-                              rcov,rcov_sphere,indat,amplitude,deramplitude)
+                              rcov,rcov_sphere,indat,amplitude_tmp,deramplitude_tmp)
 
+      ALLOCATE(amplitude(nat_sphere))
+      ALLOCATE(deramplitude(nat_sphere))
       DO iat=1,nat_sphere
         alpha(iat)=.5d0/rcov_sphere(iat)**2
+        amplitude(iat) = amplitude_tmp(iat)
+        deramplitude(iat) = deramplitude_tmp(iat)
       ENDDO
       ! Specify the width of the Gaussians if several Gaussians per l-channel are used
       DO i=1,10
@@ -182,6 +188,8 @@ CONTAINS
         fp(iorb,ienv) = eval(iorb)
       ENDDO
 
+      DEALLOCATE(amplitude)
+      DEALLOCATE(deramplitude)
       DEALLOCATE(ovrlp)
       DEALLOCATE(ampovrlp)
       DEALLOCATE(eval)
@@ -234,7 +242,6 @@ CONTAINS
     INTEGER :: iiat
     INTEGER :: iiorb
     INTEGER :: info
-    INTEGER :: iref
     INTEGER :: j
     INTEGER :: l
     INTEGER :: nat_sphere
@@ -254,8 +261,8 @@ CONTAINS
     REAL(8), DIMENSION(3,3) :: alatalat
     REAL(8), DIMENSION(3) :: eigalat
     REAL(8), DIMENSION(nwork) :: workalat
-    REAL(8), DIMENSION(nat_sphere_max) :: amplitude
-    REAL(8), DIMENSION(nat_sphere_max) :: deramplitude
+    REAL(8), DIMENSION(nat_sphere_max) :: amplitude_tmp
+    REAL(8), DIMENSION(nat_sphere_max) :: deramplitude_tmp
     REAL(8), DIMENSION(nat_sphere_max) :: alpha
     REAL(8), DIMENSION(10) :: cs
     REAL(8), DIMENSION(10) :: cp
@@ -267,11 +274,12 @@ CONTAINS
     REAL(8), ALLOCATABLE :: dovrlpdr(:,:,:,:)
     REAL(8), ALLOCATABLE :: tmpA(:,:)
     REAL(8), ALLOCATABLE :: devaldr(:,:,:)
+    REAL(8), ALLOCATABLE :: amplitude(:)
+    REAL(8), ALLOCATABLE :: deramplitude(:)
 
     REAL(8), EXTERNAL :: DDOT
 
     CHARACTER(len=2), DIMENSION(nat) :: symb
-
     dfp = 0.d0
     len_fp = nat_sphere_max*(ns+3*np)
     nenv = nat
@@ -288,7 +296,7 @@ CONTAINS
     !$omp                  llat, nat_sphere, rxyz_sphere, rcov_sphere, indat,&
     !$omp                  deramplitude, alpha, cs, cp, norb, ovrlp, ampovrlp,&
     !$omp                  eval,evecn,tmpA,eigalat,devaldr,dovrlpdr,t1,t2,workalat,i,&
-    !$omp                  iorb,xl,yl,zl,iat,iiorb,iiat)
+    !$omp                  iorb,xl,yl,zl,iat,iiorb,iiat, amplitude_tmp, deramplitude_tmp)
     !$omp do schedule(static)
 
 
@@ -309,14 +317,20 @@ CONTAINS
         ixyzmax= int(sqrt(1.d0/eigalat(1))*radius_cutoff) + 1
       ENDIF
 
-      amplitude = 0.d0
-      deramplitude = 0.d0
+      amplitude_tmp = 0.d0
+      deramplitude_tmp = 0.d0
       !determine the atoms which are within the sphere
       CALL atoms_sphere(width_cutoff,nex_cutoff,ienv,llat,ixyzmax,nat,nat_sphere_max,nat_sphere,alat,rxyz,rxyz_sphere, &
-                              rcov,rcov_sphere,indat,amplitude,deramplitude)
+                              rcov,rcov_sphere,indat,amplitude_tmp,deramplitude_tmp)
 
+      ALLOCATE(amplitude(nat_sphere))
+      ALLOCATE(deramplitude(nat_sphere))
+      amplitude = 0.d0
+      deramplitude = 0.d0
       DO iat=1,nat_sphere
         alpha(iat)=.5d0/rcov_sphere(iat)**2
+        amplitude(iat) = amplitude_tmp(iat)
+        deramplitude(iat) = deramplitude_tmp(iat)
       ENDDO
       ! Specify the width of the Gaussians if several Gaussians per l-channel are used
       DO i=1,10
@@ -392,6 +406,8 @@ CONTAINS
 !      enddo
 !stop
 
+      DEALLOCATE(amplitude)
+      DEALLOCATE(deramplitude)
       DEALLOCATE(ovrlp)
       DEALLOCATE(ampovrlp)
       DEALLOCATE(eval)
@@ -471,7 +487,6 @@ CONTAINS
     radius_cutoff2=radius_cutoff**2
     factor_cutoff=1.d0/(2.d0*nex_cutoff*width_cutoff**2)
   !!  write(*,*) 'width_cutoff,radius_cutoff',width_cutoff,radius_cutoff
-
        nat_sphere=0
        DO jat = 1, nat
            DO ix = -ixyzmax,ixyzmax
@@ -991,9 +1006,9 @@ CONTAINS
   ! Nat=NatSphere da wir eval von sphere davor hatten bzw. für mich sollte es
   ! Eval = FP
     IMPLICIT none
-    INTEGER :: norb, nmol, nat, ns, np
-    INTEGER :: i, iat, imol, iorb, ip, is
-    INTEGER :: jat, jmol, jorb, jp, js
+    INTEGER :: norb, nat, ns, np
+    INTEGER :: i, iat, iorb, ip, is
+    INTEGER :: jat, jorb, jp, js
     INTEGER :: lat
 
     REAL(8) :: derj1, derj2, derj3, derl1, derl2, derl3
@@ -1034,12 +1049,10 @@ CONTAINS
     REAL(8) :: xij, yij, zij
     REAL(8) :: xil, yil, zil
     REAL(8) :: xjl, yjl, zjl
-    REAL(8) :: ss1, ss2, ss3
 
 
     REAL(8) :: ai, aj
 
-    INTEGER, DIMENSION(nat) :: ind_molecule
     REAL(8), DIMENSION(norb,norb) :: ovrlp
     REAL(8), DIMENSION(3,nat) :: rxyz
     REAL(8), DIMENSION(nat) :: rcov

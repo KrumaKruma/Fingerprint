@@ -42,7 +42,6 @@ program fp_for_crystals
   CHARACTER(len=100) :: filename  !name of the file which contains the structure
   CHARACTER(len=2), DIMENSION(nat) :: symb !atomic symbols
 
-  INTEGER :: i
   INTEGER :: j
   INTEGER :: l
   INTEGER :: iat

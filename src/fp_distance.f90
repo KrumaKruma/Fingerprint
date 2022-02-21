@@ -47,9 +47,6 @@ program fp_distance
   CHARACTER(len=100) :: filename  !name of the file which contains the structure
   CHARACTER(len=2), DIMENSION(nat,nconf) :: symb !atomic symbols
 
-  INTEGER :: i
-  INTEGER :: j
-  INTEGER :: l
   INTEGER :: iat
   INTEGER :: jat
   INTEGER :: iorb

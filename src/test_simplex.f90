@@ -44,7 +44,6 @@ program test_simplex
   REAL(8), ALLOCATABLE, DIMENSION(:,:,:,:,:) :: dfp_contracted
   REAL(8), ALLOCATABLE, DIMENSION(:,:,:,:,:) :: dfp_contracted_test
   REAL(8), ALLOCATABLE, DIMENSION(:,:) :: fpcorner
-  REAL(8), ALLOCATABLE, DIMENSION(:,:) :: fpcorner_test
 
   CHARACTER(len=2), DIMENSION(nat,nconf) :: symb
   CHARACTER(len=2), DIMENSION(nat) :: symb_test

@@ -73,9 +73,8 @@ CONTAINS
     REAL(8), ALLOCATABLE :: xcartw(:,:)
     REAL(8), ALLOCATABLE :: distsimplexw(:,:)
     LOGICAL, ALLOCATABLE :: mask(:,:)
-    INTEGER :: i, j, k, l, iat, jat, iiat, jjat, iconf, jconf, iiconf, jjconf
-    INTEGER :: isim, jsim, nsim, msim
-    REAL(8) :: fpd
+    INTEGER :: i, j, iat, iiat, jjat, iconf, iiconf, jjconf
+    INTEGER :: isim, nsim, msim
     !REAL(8) :: fpdf
     REAL(8) :: dmax
     REAL(8) :: distmax
@@ -335,9 +334,8 @@ subroutine SimplexSparse_derivatve(len_fp, natx, nconf, nsimplex, fpall,&
   REAL(8), ALLOCATABLE :: xcartw(:,:)
   REAL(8), ALLOCATABLE :: distsimplexw(:,:)
   LOGICAL, ALLOCATABLE :: mask(:,:)
-  INTEGER :: i, j, k, l, iat, jat, iiat, jjat, iconf, jconf, iiconf, jjconf
+  INTEGER :: i, j, l, iat, jat, iiat, jjat, iconf, iiconf, jjconf
   INTEGER :: isim, jsim, nsim, msim
-  REAL(8) :: fpd
   !REAL(8) :: fpdf
   REAL(8) :: dmax
   REAL(8) :: distmax
@@ -657,9 +655,8 @@ subroutine largest_pair_dist(len_fp,natx,nconf,fpall,iiat,iiconf,jjat,jjconf,dis
   REAL(8) :: fpd
   REAL(8), DIMENSION(len_fp, natx, nconf) :: fpall
 
-  INTEGER :: ic, jc, iat, jat, iconf, jconf
+  INTEGER :: iat, jat, iconf, jconf
 
-  LOGICAL :: is_gt
 
   REAL(8) :: local_distmax
   INTEGER :: local_iiat

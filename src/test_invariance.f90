@@ -158,7 +158,6 @@ subroutine read_xyz(filename, nat, rxyz, symb)
     INTEGER :: l
     REAL(8) :: convert
     REAL(8), DIMENSION(3,nat) :: rxyz
-    REAL(8), DIMENSION(3,3) :: alat
     CHARACTER(len=2), DIMENSION(nat) :: symb
     CHARACTER(len=100) :: filename
     CHARACTER(len=100) :: ustring

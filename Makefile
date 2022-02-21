@@ -3,12 +3,20 @@ OBJ := build
 MOD := modules
 DEBS := precision.mod hung.mod fingerprint.mod rot.mod simplex.mod 
 FC = gfortran
+DEBUG = False
+
 
 ifeq ($(FC), gfortran)
 linking_flags = -Ofast -llapack -lblas -fopenmp -J$(OBJ)/$(MOD)
+  ifeq ($(DEBUG),True)
+  linking_flags = -llapack -lblas -fcheck=all -O0 -g -Wall -J$(OBJ)/$(MOD)
+  endif
 compile_flags = $(linking_flags)
 else
-linking_flags = -O3 -mkl -qopenmp -module $(OBJ)/$(MOD)
+linking_flags = -O3 -mkl -qopenmp -module -no-wrap-margin $(OBJ)/$(MOD)
+  ifeq ($(DEBUG),True)
+  linking_flags = -llapack -lblas -g -no-wrap-margin -traceback -check all -debug all -J$(OBJ)/$(MOD)
+  endif
 compile_flags = $(linking_flags)
 endif
 
