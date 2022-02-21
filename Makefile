@@ -1,17 +1,21 @@
 SRC := src
 OBJ := build
 MOD := modules
-DEBS := precision.mod hung.mod fingerprint.mod rot.mod simplex.mod 
-FC = gfortran
-DEBUG = False
-
+FC := gfortran
+DEBUG := False
+LAPACK := -llapack
+BLAS := -lblas
 
 ifeq ($(FC), gfortran)
-linking_flags = -Ofast -lscalapack -lopenblas -fopenmp -J$(OBJ)/$(MOD)
+
+
+linking_flags = -Ofast $(LAPACK) $(BLAS) -fopenmp -J$(OBJ)/$(MOD) -I$(OBJ)/$(MOD)/
   ifeq ($(DEBUG),True)
-  linking_flags = -lscalapack -lopenblas -fcheck=all -O0 -g -Wall -J$(OBJ)/$(MOD)
+  linking_flags = $(LAPACK) $(BLAS) -fcheck=all -O0 -g -Wall -J$(OBJ)/$(MOD) -I$(OBJ)/$(MOD)/
   endif
+  
 compile_flags = $(linking_flags)
+
 else
 linking_flags = -O3 -mkl -qopenmp -no-wrap-margin -module $(OBJ)/$(MOD)
   ifeq ($(DEBUG),True)
@@ -62,6 +66,8 @@ bin:
 	mkdir -p build/modules
 
 clean:
+	rm -rf *.mod
+	rm -rf *.o
 	rm -rf $(OBJ)
 	rm -rf data/*dat
     
