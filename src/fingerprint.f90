@@ -54,6 +54,7 @@ CONTAINS
 !> @param[out] fp fingerprint vectors
 !---------------------------------------------------------------------------
   SUBROUTINE only_fingerprint(nat, nat_sphere_max, ns, np, width_cutoff, alat,rxyz, symb, fp)
+    IMPLICIT NONE
     INTEGER, INTENT(IN) :: nat      !number of atoms in system
     INTEGER, INTENT(IN) :: ns       !s-orbitals
     INTEGER, INTENT(IN) :: np       !p-orbitals
@@ -209,6 +210,7 @@ CONTAINS
   !---------------------------------------------------------------------------
 
   SUBROUTINE fingerprint_and_derivatives(nat, nat_sphere_max, ns, np, width_cutoff, alat,rxyz,symb, fp, dfp)
+    IMPLICIT NONE
     INTEGER, INTENT(IN) :: nat      !number of atoms in system
     INTEGER, INTENT(IN) :: ns       !s-orbitals
     INTEGER, INTENT(IN) :: np       !p-orbitals
