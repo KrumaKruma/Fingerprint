@@ -113,6 +113,15 @@ CONTAINS
     ENDDO
     fp = 0.d0
 
+    IF (ns .gt. 3) THEN
+      WRITE(*,*) "WARNING: NUMBER OF S-ORBITALS GREATER THAN 4" 
+      WRITE(*,*) "WARNING: NOT TESTED!"
+    ENDIF
+
+    IF (np .gt. 1) THEN 
+      WRITE(*,*) "WARNING: NUMBER OF P-ORBITALS GREATER THAN 1" 
+      WRITE(*,*) "WARNING: NOT TESTED!"
+    ENDIF
     !loop over all atoms to get a fingerprint vector for each environment
 
 
@@ -155,8 +164,10 @@ CONTAINS
         deramplitude(iat) = deramplitude_tmp(iat)
       ENDDO
       ! Specify the width of the Gaussians if several Gaussians per l-channel are used
+   
+
       DO i=1,10
-        cs(i)=sqrt(2.d0)**(i-1)
+        cs(i)=sqrt(2.d0)**(float(i)-((float(ns)+1.d0)/2.d0))
         cp(i)=sqrt(2.d0)**(i-1)
       ENDDO
       norb = (ns+3*np)*nat_sphere
@@ -290,6 +301,16 @@ CONTAINS
     ENDDO
     fp = 0.d0
 
+    IF (ns .gt. 3) THEN
+      WRITE(*,*) "WARNING: NUMBER OF S-ORBITALS GREATER THAN 4" 
+      WRITE(*,*) "WARNING: NOT TESTED!"
+    ENDIF
+
+    IF (np .gt. 1) THEN 
+      WRITE(*,*) "WARNING: NUMBER OF P-ORBITALS GREATER THAN 1" 
+      WRITE(*,*) "WARNING: NOT TESTED!"
+    ENDIF
+    
     !loop over all atoms to get a fingerprint vector for each environment
 
     !$omp parallel private(ienv, radius_cutoff, ixyzmax, alatalat, amplitude,&
@@ -334,7 +355,7 @@ CONTAINS
       ENDDO
       ! Specify the width of the Gaussians if several Gaussians per l-channel are used
       DO i=1,10
-        cs(i)=sqrt(2.d0)**(i-1)
+        cs(i)=sqrt(2.d0)**(float(i)-((float(ns)+1.d0)/2.d0))
         cp(i)=sqrt(2.d0)**(i-1)
       ENDDO
       norb = (ns+3*np)*nat_sphere
@@ -378,7 +399,7 @@ CONTAINS
       yl = rxyz_sphere(2,llat)
       zl = rxyz_sphere(3,llat)
 
-      CALL xyz2ovrlpdr(norb,nat_sphere,rxyz_sphere,rcov_sphere,amplitude,deramplitude,llat,xl,yl,zl,ns,np,dovrlpdr,ovrlp)
+      CALL xyz2ovrlpdr(norb,nat_sphere,rxyz_sphere,rcov_sphere,amplitude,deramplitude,llat,xl,yl,zl,ns,np,cs,cp,dovrlpdr,ovrlp)
       ! calculate fingerprint derivatives
       DO iat=1,nat_sphere
         DO i=1,3
@@ -1000,7 +1021,7 @@ CONTAINS
   !---------------------------------------------------------------------------
 
 
-  subroutine xyz2ovrlpdr(norb,nat,rxyz,rcov,amplitude,deramplitude,lat,xl,yl,zl,ns,np,dovrlpdr,ovrlp)
+  subroutine xyz2ovrlpdr(norb,nat,rxyz,rcov,amplitude,deramplitude,lat,xl,yl,zl,ns,np,cs,cp,dovrlpdr,ovrlp)
   ! Calculqates the derivative of all eigenvalues of an atomic fingerprint with
   ! respect to the atomic positions
   ! Nat=NatSphere da wir eval von sphere davor hatten bzw. für mich sollte es
@@ -1066,13 +1087,6 @@ CONTAINS
       DO iat=1,nat
          alpha(iat)=.5d0/rcov(iat)**2
       ENDDO
-      ! Specify the width of the Gaussians if several Gaussians per l-channel are
-      ! used
-      DO i=1,10
-        cs(i)=sqrt(2.d0)**(i-1)
-        cp(i)=sqrt(2.d0)**(i-1)
-      ENDDO
-
 
 
   ! Now calculate derivatives
