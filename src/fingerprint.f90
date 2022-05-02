@@ -83,6 +83,7 @@ CONTAINS
     REAL(8) :: radius_cutoff
     REAL(8) :: t1
     REAL(8) :: t2
+    REAL(8) :: volume
 
     REAL(8), DIMENSION(3,nat_sphere_max) :: rxyz_sphere
     REAL(8), DIMENSION(nat) :: rcov
@@ -136,8 +137,13 @@ CONTAINS
 
 
       radius_cutoff=sqrt(2.d0*nex_cutoff)*width_cutoff
-
-      IF (alat(1,1)*alat(2,2)*alat(3,3).eq.0.d0 ) THEN ! no periodic boundary condition
+      
+      
+      volume = abs(alat(1, 1)*alat(2, 2)*alat(3, 3) - alat(1, 1)*alat(2, 3)*alat(3, 2) - &
+                   alat(1, 2)*alat(2, 1)*alat(3, 3) + alat(1, 2)*alat(2, 3)*alat(3, 1) + &
+                   alat(1, 3)*alat(2, 1)*alat(3, 2) - alat(1, 3)*alat(2, 2)*alat(3, 1))
+     
+      IF (volume.lt.0.d0 ) THEN ! no periodic boundary condition
           ixyzmax=0
       ELSE  ! periodic boundary conditions
         DO i=1,3
@@ -265,6 +271,7 @@ CONTAINS
     REAL(8) :: xl
     REAL(8) :: yl
     REAL(8) :: zl
+    REAL(8) :: volume
 
     REAL(8), DIMENSION(3,nat_sphere_max) :: rxyz_sphere
     REAL(8), DIMENSION(nat) :: rcov
@@ -324,8 +331,15 @@ CONTAINS
     DO ienv=1, nenv
 
       radius_cutoff=sqrt(2.d0*nex_cutoff)*width_cutoff
+     
 
-      IF (alat(1,1)*alat(2,2)*alat(3,3).eq.0.d0 ) THEN ! no periodic boundary condition
+      
+
+      volume = abs(alat(1, 1)*alat(2, 2)*alat(3, 3) - alat(1, 1)*alat(2, 3)*alat(3, 2) - &
+                   alat(1, 2)*alat(2, 1)*alat(3, 3) + alat(1, 2)*alat(2, 3)*alat(3, 1) + &
+                   alat(1, 3)*alat(2, 1)*alat(3, 2) - alat(1, 3)*alat(2, 2)*alat(3, 1))
+
+      IF (volume.lt.1.d-12 ) THEN ! no periodic boundary condition
           ixyzmax=0
       ELSE  ! periodic boundary conditions
         DO i=1,3
@@ -419,13 +433,6 @@ CONTAINS
           dfp(l,3,iiat,ienv)=dfp(l,3,iiat,ienv) + devaldr(3,iat,l)
         ENDDO
       ENDDO
-!      do l = 1, norb
-!        do iat=1,nat_sphere
-!          iiat=indat(iat)
-!          print*, l, iat, dfp(ienv,1,iiat,l)
-!        enddo
-!      enddo
-!stop
 
       DEALLOCATE(amplitude)
       DEALLOCATE(deramplitude)
@@ -436,7 +443,6 @@ CONTAINS
       DEALLOCATE(dovrlpdr)
       DEALLOCATE(tmpA)
       DEALLOCATE(devaldr)
-      !write(*,*) "Fingerprint of environment", ienv, " : DONE"
     ENDDO
 
     !$omp end do
@@ -445,6 +451,8 @@ CONTAINS
 
 
   END SUBROUTINE
+
+
 
 ! subroutines used for calculations
 !---------------------------------------------------------------------------
