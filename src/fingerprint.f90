@@ -115,17 +115,19 @@ CONTAINS
     fp = 0.d0
 
     IF (ns .gt. 3) THEN
-      WRITE(*,*) "WARNING: NUMBER OF S-ORBITALS GREATER THAN 4" 
+      WRITE(*,*) "WARNING: NUMBER OF S-ORBITALS GREATER THAN 4"
       WRITE(*,*) "WARNING: NOT TESTED!"
     ENDIF
 
-    IF (np .gt. 1) THEN 
-      WRITE(*,*) "WARNING: NUMBER OF P-ORBITALS GREATER THAN 1" 
+    IF (np .gt. 1) THEN
+      WRITE(*,*) "WARNING: NUMBER OF P-ORBITALS GREATER THAN 1"
       WRITE(*,*) "WARNING: NOT TESTED!"
     ENDIF
     !loop over all atoms to get a fingerprint vector for each environment
 
-
+    volume = abs(alat(1, 1)*alat(2, 2)*alat(3, 3) - alat(1, 1)*alat(2, 3)*alat(3, 2) - &
+                 alat(1, 2)*alat(2, 1)*alat(3, 3) + alat(1, 2)*alat(2, 3)*alat(3, 1) + &
+                 alat(1, 3)*alat(2, 1)*alat(3, 2) - alat(1, 3)*alat(2, 2)*alat(3, 1))
 
     !$omp parallel private(ienv, radius_cutoff, ixyzmax, alatalat, amplitude,&
     !$omp                  llat, nat_sphere, rxyz_sphere, rcov_sphere, indat,&
@@ -137,13 +139,8 @@ CONTAINS
 
 
       radius_cutoff=sqrt(2.d0*nex_cutoff)*width_cutoff
-      
-      
-      volume = abs(alat(1, 1)*alat(2, 2)*alat(3, 3) - alat(1, 1)*alat(2, 3)*alat(3, 2) - &
-                   alat(1, 2)*alat(2, 1)*alat(3, 3) + alat(1, 2)*alat(2, 3)*alat(3, 1) + &
-                   alat(1, 3)*alat(2, 1)*alat(3, 2) - alat(1, 3)*alat(2, 2)*alat(3, 1))
-     
-      IF (volume.lt.0.d0 ) THEN ! no periodic boundary condition
+
+      IF (volume.lt.1.d-5 ) THEN ! no periodic boundary condition
           ixyzmax=0
       ELSE  ! periodic boundary conditions
         DO i=1,3
@@ -170,7 +167,7 @@ CONTAINS
         deramplitude(iat) = deramplitude_tmp(iat)
       ENDDO
       ! Specify the width of the Gaussians if several Gaussians per l-channel are used
-   
+
 
       DO i=1,10
         cs(i)=sqrt(2.d0)**(float(i)-((float(ns)+1.d0)/2.d0))
@@ -309,15 +306,15 @@ CONTAINS
     fp = 0.d0
 
     IF (ns .gt. 3) THEN
-      WRITE(*,*) "WARNING: NUMBER OF S-ORBITALS GREATER THAN 4" 
+      WRITE(*,*) "WARNING: NUMBER OF S-ORBITALS GREATER THAN 4"
       WRITE(*,*) "WARNING: NOT TESTED!"
     ENDIF
 
-    IF (np .gt. 1) THEN 
-      WRITE(*,*) "WARNING: NUMBER OF P-ORBITALS GREATER THAN 1" 
+    IF (np .gt. 1) THEN
+      WRITE(*,*) "WARNING: NUMBER OF P-ORBITALS GREATER THAN 1"
       WRITE(*,*) "WARNING: NOT TESTED!"
     ENDIF
-    
+
     !loop over all atoms to get a fingerprint vector for each environment
 
     !$omp parallel private(ienv, radius_cutoff, ixyzmax, alatalat, amplitude,&
@@ -331,9 +328,9 @@ CONTAINS
     DO ienv=1, nenv
 
       radius_cutoff=sqrt(2.d0*nex_cutoff)*width_cutoff
-     
 
-      
+
+
 
       volume = abs(alat(1, 1)*alat(2, 2)*alat(3, 3) - alat(1, 1)*alat(2, 3)*alat(3, 2) - &
                    alat(1, 2)*alat(2, 1)*alat(3, 3) + alat(1, 2)*alat(2, 3)*alat(3, 1) + &
